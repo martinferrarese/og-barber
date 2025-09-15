@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { readCortes, addCorte } from '@/utils/cortesData';
 import { readCortesKV, addCorteKV } from '@/utils/cortesKv';
 
-const useKV = !!process.env.KV_REST_API_URL;
+const useKV = !!process.env.UPSTASH_REDIS_REST_URL;
 
 export async function GET() {
   const cortes = useKV ? await readCortesKV() : await readCortes();
