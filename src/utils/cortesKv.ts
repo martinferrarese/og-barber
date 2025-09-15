@@ -11,14 +11,17 @@ export async function addCorteKV(corte: CorteEntry) {
 }
 
 export async function readCortesKV(): Promise<CorteEntry[]> {
-  const items = await kv.lrange<string>(KEY, 0, -1);
-  return items
-    .map((it) => {
-      try {
-        return JSON.parse(it);
-      } catch {
-        return null;
+  const raw = await kv.lrange(KEY, 0, -1);
+  return raw
+    .map((it: unknown) => {
+      if (typeof it === 'string') {
+        try {
+          return JSON.parse(it);
+        } catch {
+          return null;
+        }
       }
+      return it as CorteEntry;
     })
-    .filter(Boolean);
+    .filter(Boolean) as CorteEntry[];
 }

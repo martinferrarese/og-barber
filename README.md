@@ -19,9 +19,9 @@ Se utiliza GitHub Actions para ejecutar lint y tests en cada PR y push a `main`.
 
 Si configuras **Vercel KV** agrega estas variables de entorno en Vercel:
 
-| Variable | Descripción |
-|----------|-------------|
-| `KV_REST_API_URL` | URL que provee Vercel |
-| `KV_REST_API_TOKEN` | Token de acceso |
+| Variable            | Descripción                         |
+| ------------------- | ----------------------------------- |
+| `KV_REST_API_URL`   | URL REST de la base Redis (Upstash) |
+| `KV_REST_API_TOKEN` | Token de acceso REST                |
 
-La API detecta `KV_REST_API_URL` y usa KV; en desarrollo sigue usando el archivo JSON local.
+La API detecta `KV_REST_API_URL` (o las equivalentes de Upstash) y usa Redis; en desarrollo, si no existen, usa el archivo JSON local.

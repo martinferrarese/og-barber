@@ -9,9 +9,10 @@ export const metadata = {
 };
 
 export default async function CortesPage() {
-  const cortes = process.env.UPSTASH_REDIS_REST_URL
+  const cortes = process.env.KV_REST_API_URL
     ? await readCortesKV()
     : await readCortes();
+
   return (
     <div className="p-8 max-w-2xl mx-auto flex flex-col gap-8">
       <div>
