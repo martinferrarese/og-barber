@@ -16,6 +16,7 @@ export default function CorteForm() {
   });
   const [barberos, setBarberos] = useState<string[]>([]);
   const router = useRouter();
+  const canSubmit = barberos.length > 0 && formData.barbero !== "";
 
   useEffect(() => {
     fetch("/api/barberos")
@@ -109,7 +110,8 @@ export default function CorteForm() {
 
       <button
         type="submit"
-        className="bg-foreground text-background py-2 px-4 rounded hover:opacity-90"
+        disabled={!canSubmit}
+        className={`bg-foreground text-background py-2 px-4 rounded hover:opacity-90 ${!canSubmit ? "opacity-50 cursor-not-allowed" : ""}`}
       >
         Guardar corte
       </button>

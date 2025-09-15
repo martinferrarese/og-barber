@@ -56,4 +56,51 @@ describe("CorteForm", () => {
       }),
     );
   });
+
+  it("deshabilita el botón cuando no hay barbero seleccionado", async () => {
+    // Mock de barberos disponibles
+    const fetchWithBarberos = jest.fn((url: RequestInfo) => {
+      if (url === "/api/barberos") {
+        return Promise.resolve({ json: () => Promise.resolve(["Juan"]) } as Response);
+      }
+      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) } as Response);
+    });
+    global.fetch = fetchWithBarberos as unknown as typeof fetch;
+
+    render(<CorteForm />);
+
+    const submit = await screen.findByRole("button", { name: /guardar corte/i });
+
+    // El botón debe estar deshabilitado porque no se ha seleccionado barbero
+    expect(submit).toBeDisabled();
+
+    await userEvent.click(submit);
+
+    // No debería haberse hecho la llamada para guardar el corte
+    expect(fetchWithBarberos).toHaveBeenCalledTimes(1); // solo la llamada inicial a /api/barberos
+  });
+
+  it("deshabilita el botón si no hay barberos disponibles", async () => {
+    // Mock sin barberos
+    const fetchSinBarberos = jest.fn((url: RequestInfo) => {
+      if (url === "/api/barberos") {
+        return Promise.resolve({ json: () => Promise.resolve([]) } as Response);
+      }
+      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) } as Response);
+    });
+    global.fetch = fetchSinBarberos as unknown as typeof fetch;
+
+    render(<CorteForm />);
+
+    const mensaje = await screen.findByText(/no hay barberos\. agrega uno primero\./i);
+    expect(mensaje).toBeInTheDocument();
+
+    const submit = screen.getByRole("button", { name: /guardar corte/i });
+    expect(submit).toBeDisabled();
+
+    await userEvent.click(submit);
+
+    // Solo se debe haber hecho la llamada de obtención de barberos
+    expect(fetchSinBarberos).toHaveBeenCalledTimes(1);
+  });
 });
