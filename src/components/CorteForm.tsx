@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export interface CorteEntry {
   tipo: "corte" | "corte_con_barba";
@@ -13,6 +14,15 @@ export default function CorteForm() {
     barbero: "",
     formaDePago: "efectivo",
   });
+  const [barberos, setBarberos] = useState<string[]>([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/barberos")
+      .then((res) => res.json())
+      .then(setBarberos)
+      .catch(console.error);
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -28,7 +38,7 @@ export default function CorteForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     })
-      .then(() => window.location.reload())
+      .then(() => router.refresh())
       .catch(console.error);
     setFormData({ tipo: "corte", barbero: "", formaDePago: "efectivo" });
   };
@@ -58,15 +68,27 @@ export default function CorteForm() {
         <label className="font-medium" htmlFor="barbero">
           Barbero
         </label>
-        <input
-          id="barbero"
-          name="barbero"
-          type="text"
-          value={formData.barbero}
-          onChange={handleChange}
-          required
-          className="border rounded px-3 py-2"
-        />
+        {barberos.length === 0 ? (
+          <p className="text-sm text-gray-500">No hay barberos. Agrega uno primero.</p>
+        ) : (
+          <select
+            id="barbero"
+            name="barbero"
+            value={formData.barbero}
+            onChange={handleChange}
+            required
+            className="border rounded px-3 py-2"
+          >
+            <option value="" disabled>
+              Selecciona un barbero
+            </option>
+            {barberos.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">

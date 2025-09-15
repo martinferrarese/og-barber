@@ -2,12 +2,26 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CorteForm from "@/components/CorteForm";
 
-// Mock fetch
-const mockFetch = jest.fn(() =>
-  Promise.resolve({ json: () => Promise.resolve({ ok: true }) }),
-);
+// Mock fetch con comportamiento según URL
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const mockFetch = jest.fn((url: RequestInfo, _options?: RequestInit): Promise<Response> => {
+  if (typeof url === "string" && url === "/api/barberos") {
+    // Respuesta para lista de barberos
+    return Promise.resolve({
+      json: () => Promise.resolve(["Juan"]),
+    } as unknown as Response);
+  }
+  // Respuesta para POST /api/cortes
+  return Promise.resolve({
+    json: () => Promise.resolve({ ok: true }),
+  } as unknown as Response);
+});
 
 global.fetch = mockFetch as unknown as typeof fetch;
+
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: jest.fn() }),
+}));
 
 describe("CorteForm", () => {
   beforeEach(() => {
@@ -16,15 +30,19 @@ describe("CorteForm", () => {
 
   it("envía los datos correctamente", async () => {
     render(<CorteForm />);
+
+    // Espera a que el select de barberos esté disponible con las opciones
+    const selectBarbero = await screen.findByLabelText(/barbero/i);
     const selectTipo = screen.getByLabelText(/tipo de servicio/i);
-    const inputBarbero = screen.getByLabelText(/barbero/i);
     const submit = screen.getByRole("button", { name: /guardar corte/i });
 
     await userEvent.selectOptions(selectTipo, "corte_con_barba");
-    await userEvent.type(inputBarbero, "Juan");
+    await userEvent.selectOptions(selectBarbero, "Juan");
     await userEvent.click(submit);
 
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    // Debe haber dos llamadas: una para obtener barberos, otra para guardar corte
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/cortes",
       expect.objectContaining({

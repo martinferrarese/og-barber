@@ -12,6 +12,12 @@ export default function Home() {
       >
         Registrar cortes
       </a>
+      <a
+        href="/barberos"
+        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90"
+      >
+        Administrar barberos
+      </a>
     </main>
   );
 }
