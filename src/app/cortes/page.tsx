@@ -1,6 +1,6 @@
 import CorteForm from "@/components/CorteForm";
-import { readCortesKV } from "@/utils/cortesKv";
-import { readCortes } from "@/utils/cortesData";
+import { readCortesKV } from "@/utils/cortesFromDB";
+import { readCortes } from "@/utils/cortesFromFile";
 
 export const dynamic = 'force-dynamic';
 

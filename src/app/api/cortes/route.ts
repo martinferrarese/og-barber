@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { readCortes, addCorte } from '@/utils/cortesData';
-import { readCortesKV, addCorteKV } from '@/utils/cortesKv';
+import { readCortes, addCorte } from '@/utils/cortesFromFile';
+import { readCortesKV, addCorteKV } from '@/utils/cortesFromDB';
 
 const useKV = !!process.env.KV_REST_API_URL;
 
