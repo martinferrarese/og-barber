@@ -1,12 +1,17 @@
 import CorteForm from "@/components/CorteForm";
+import { readCortesKV } from "@/utils/cortesKv";
 import { readCortes } from "@/utils/cortesData";
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: "Registrar cortes | OG Barber",
 };
 
 export default async function CortesPage() {
-  const cortes = await readCortes();
+  const cortes = process.env.UPSTASH_REDIS_REST_URL
+    ? await readCortesKV()
+    : await readCortes();
   return (
     <div className="p-8 max-w-2xl mx-auto flex flex-col gap-8">
       <div>
