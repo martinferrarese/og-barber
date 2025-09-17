@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { RegistroCortes } from "@/types/registroCortes";
 
@@ -25,7 +25,10 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
 
   const canContinue = barberos.length > 0 && formData.barbero !== "";
 
+  const fetchedRef = useRef(false);
   useEffect(() => {
+    if (fetchedRef.current) return; // Previene doble ejecución en StrictMode
+    fetchedRef.current = true;
     fetch("/api/barberos")
       .then((res) => res.json())
       .then((data: string[]) =>
