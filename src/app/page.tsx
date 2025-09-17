@@ -18,6 +18,18 @@ export default function Home() {
       >
         Administrar barberos
       </a>
+      <a
+        href="/registro-dia"
+        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90"
+      >
+        Cargar día
+      </a>
+      <a
+        href="/registros-dia"
+        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90"
+      >
+        Ver registros diarios
+      </a>
     </main>
   );
 }
