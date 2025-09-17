@@ -7,12 +7,6 @@ export default function Home() {
         pagos y barberos.
       </p>
       <a
-        href="/barberos"
-        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90"
-      >
-        Administrar barberos
-      </a>
-      <a
         href="/registro-dia"
         className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90"
       >
@@ -23,6 +17,12 @@ export default function Home() {
         className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90"
       >
         Ver registros diarios
+      </a>
+      <a
+        href="/barberos"
+        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90"
+      >
+        Administrar barberos
       </a>
     </main>
   );

@@ -6,7 +6,10 @@ import { useRouter } from "next/navigation";
 
 export default function RegistroDiaForm() {
   const router = useRouter();
-  const hoy = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  // Fecha seleccionada para el registro del día. Por defecto, hoy.
+  const todayDefault = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const [fechaDia, setFechaDia] = useState<string>(todayDefault);
+
   const [registros, setRegistros] = useState<RegistroCortes[]>([]);
   const [mostrandoFormulario, setMostrandoFormulario] = useState(true);
 
@@ -18,7 +21,7 @@ export default function RegistroDiaForm() {
 
   function handleCerrarDia() {
     const payload: RegistroCortesDia = {
-      fecha: hoy,
+      fecha: fechaDia,
       barberos: registros,
     };
     fetch("/api/registros-dia", {
@@ -32,11 +35,36 @@ export default function RegistroDiaForm() {
 
   return (
     <div className="flex flex-col gap-6 max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold">Registro de cortes del día {hoy}</h1>
+      {/* Selector de fecha del día a registrar */}
+      <div className="flex flex-col gap-1 max-w-xs">
+        <label htmlFor="fecha-dia" className="font-medium">
+          Fecha del día
+        </label>
+        {registros.length === 0 ? (
+          <input
+            type="date"
+            id="fecha-dia"
+            value={fechaDia}
+            onChange={(e) => setFechaDia(e.target.value)}
+            className="border rounded px-3 py-2"
+          />
+        ) : (
+          <div className="flex flex-col gap-1">
+            <span className="select-none font-medium text-foreground">
+              {fechaDia}
+            </span>
+            <small className="text-xs text-gray-600 dark:text-gray-400">
+              Fecha bloqueada tras agregar barberos.
+            </small>
+          </div>
+        )}
+      </div>
+
+      <h1 className="text-2xl font-bold">Registro de cortes del día {fechaDia}</h1>
 
       {mostrandoFormulario && (
         <RegistroCortesForm
-          fechaFija={hoy}
+          fechaFija={fechaDia}
           onContinue={(rc) => {
             handleAgregarBarbero(rc);
             setMostrandoFormulario(false); // ocultamos hasta que usuario decida agregar otro
