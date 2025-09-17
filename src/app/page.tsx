@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function Home() {
+function HomeClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [showToast, setShowToast] = useState(false);
@@ -64,5 +65,14 @@ export default function Home() {
         </div>
       )}
     </main>
+  );
+}
+
+// Página principal que envuelve el Client Component en un Suspense
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeClient />
+    </Suspense>
   );
 }

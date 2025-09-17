@@ -32,7 +32,7 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
         setBarberos(data.filter((b) => !barberosExcluidos.includes(b))),
       )
       .catch(console.error);
-  }, []);
+  }, [barberosExcluidos]);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,

@@ -114,24 +114,13 @@ export default function RegistroDiaForm() {
         <label htmlFor="fecha-dia" className="font-medium">
           Fecha del día
         </label>
-        {registros.length === 0 ? (
-          <input
-            type="date"
-            id="fecha-dia"
-            value={fechaDia}
-            onChange={(e) => setFechaDia(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-        ) : (
-          <div className="flex flex-col gap-1">
-            <span className="select-none font-medium text-foreground">
-              {fechaDia}
-            </span>
-            <small className="text-xs text-gray-600 dark:text-gray-400">
-              Fecha bloqueada tras agregar barberos.
-            </small>
-          </div>
-        )}
+        <input
+          type="date"
+          id="fecha-dia"
+          value={fechaDia}
+          disabled
+          className="border rounded px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+        />
       </div>
 
       <h1 className="text-2xl font-bold">Registro de cortes del día {fechaDia}</h1>

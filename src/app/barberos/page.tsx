@@ -8,11 +8,6 @@ export const metadata = {
   title: 'Administrar barberos | OG Barber',
 };
 
-async function eliminar(nombre: string) {
-  "use server";
-  // This function is no longer needed as DeleteBarberoButton handles the deletion
-}
-
 export default async function BarberosPage() {
   const barberos = await readBarberosKV();
 
