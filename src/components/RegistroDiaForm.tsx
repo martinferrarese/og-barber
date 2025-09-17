@@ -29,7 +29,10 @@ export default function RegistroDiaForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
-      .then(() => router.refresh())
+      .then(() => {
+        // Redirigir a la pantalla principal con la fecha como query param para mostrar un toast
+        router.push(`/?diaCargada=${encodeURIComponent(fechaDia)}`);
+      })
       .catch(console.error);
   }
 

@@ -1,4 +1,37 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+
 export default function Home() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [showToast, setShowToast] = useState(false);
+  const [diaToast, setDiaToast] = useState<string | null>(null);
+
+  // Detectar el query param sólo al llegar a la página
+  useEffect(() => {
+    const diaQuery = searchParams.get("diaCargada");
+    if (diaQuery) {
+      setDiaToast(diaQuery);
+      setShowToast(true);
+
+      // Limpiar el parámetro de la URL sin crear una nueva entrada en el history
+      const url = new URL(window.location.href);
+      url.searchParams.delete("diaCargada");
+      router.replace(url.pathname + url.search);
+    }
+    // Sólo queremos ejecutar esto cuando cambie el objeto searchParams
+  }, [searchParams, router]);
+
+  // Ocultar el toast después de 4 s
+  useEffect(() => {
+    if (showToast) {
+      const t = setTimeout(() => setShowToast(false), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [showToast]);
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8 text-center gap-8">
       <h1 className="text-4xl font-extrabold">OG Barber</h1>
@@ -24,6 +57,12 @@ export default function Home() {
       >
         Administrar barberos
       </a>
+
+      {showToast && diaToast && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded shadow">
+          Se cargó el día {diaToast}
+        </div>
+      )}
     </main>
   );
 }
