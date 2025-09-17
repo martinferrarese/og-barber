@@ -161,19 +161,22 @@ export default function RegistroDiaForm() {
       )}
 
       <div className="flex gap-4 mt-4">
-        <button
-          className="bg-foreground text-background px-4 py-2 rounded hover:opacity-90"
-          onClick={() => setMostrandoFormulario(true)}
-        >
-          Agregar otro barbero
-        </button>
-        <button
-          disabled={registros.length === 0}
-          onClick={handleCerrarDia}
-          className={`bg-green-600 text-white px-4 py-2 rounded hover:opacity-90 ${registros.length === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
-        >
-          Cerrar día
-        </button>
+        {registros.length > 0 && (
+          <button
+            className="bg-foreground text-background px-4 py-2 rounded hover:opacity-90"
+            onClick={() => setMostrandoFormulario(true)}
+          >
+            Agregar otro barbero
+          </button>
+        )}
+        {registros.length > 0 && (
+          <button
+            onClick={handleCerrarDia}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:opacity-90"
+          >
+            Cerrar día
+          </button>
+        )}
       </div>
     </div>
   );
