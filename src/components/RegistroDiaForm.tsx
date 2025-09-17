@@ -11,7 +11,25 @@ export default function RegistroDiaForm() {
   const [fechaDia, setFechaDia] = useState<string>(todayDefault);
 
   const [registros, setRegistros] = useState<RegistroCortes[]>([]);
+  // fase: 'seleccion' (elegir fecha), 'form' (carga barberos), 'mensaje' (fecha existente)
+  const [fase, setFase] = useState<'seleccion' | 'form' | 'mensaje'>('seleccion');
+
   const [mostrandoFormulario, setMostrandoFormulario] = useState(true);
+
+  async function handleSeleccionFecha() {
+    try {
+      const res = await fetch("/api/registros-dia");
+      const data: { fecha: string }[] = await res.json();
+      const existe = data.some((d) => d.fecha === fechaDia);
+      if (existe) {
+        setFase('mensaje');
+      } else {
+        setFase('form');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   function handleAgregarBarbero(rc: RegistroCortes) {
     setRegistros((prev) => [...prev, rc]);
@@ -36,6 +54,59 @@ export default function RegistroDiaForm() {
       .catch(console.error);
   }
 
+  if (fase === 'mensaje') {
+    return (
+      <div className="max-w-xl mx-auto p-6 text-center">
+        <p className="text-red-600 font-medium mb-4">
+          La fecha {fechaDia} ya fue cargada previamente.
+        </p>
+        <p className="text-sm mb-6">
+          Puedes consultarla y editarla desde la sección &quot;Registros diarios&quot;.
+        </p>
+        <div className="flex justify-center gap-4">
+          <button
+            className="bg-foreground text-background px-4 py-2 rounded hover:opacity-90"
+            onClick={() => router.push("/registros-dia")}
+          >
+            Ir a registros diarios
+          </button>
+          <button
+            className="border px-4 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+            onClick={() => setFase('seleccion')}
+          >
+            Cambiar fecha
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (fase === 'seleccion') {
+    return (
+      <div className="flex flex-col gap-6 max-w-xl mx-auto p-6">
+        <div className="flex flex-col gap-1 max-w-xs">
+          <label htmlFor="fecha-dia" className="font-medium">
+            Fecha del día
+          </label>
+          <input
+            type="date"
+            id="fecha-dia"
+            value={fechaDia}
+            onChange={(e) => setFechaDia(e.target.value)}
+            className="border rounded px-3 py-2"
+          />
+        </div>
+        <button
+          className="bg-foreground text-background px-4 py-2 rounded max-w-xs hover:opacity-90"
+          onClick={handleSeleccionFecha}
+        >
+          Seleccionar fecha
+        </button>
+      </div>
+    );
+  }
+
+  // fase === 'form'
   return (
     <div className="flex flex-col gap-6 max-w-xl mx-auto p-6">
       {/* Selector de fecha del día a registrar */}
@@ -68,6 +139,7 @@ export default function RegistroDiaForm() {
       {mostrandoFormulario && (
         <RegistroCortesForm
           fechaFija={fechaDia}
+          barberosExcluidos={registros.map((r) => r.barbero)}
           onContinue={(rc) => {
             handleAgregarBarbero(rc);
             setMostrandoFormulario(false); // ocultamos hasta que usuario decida agregar otro

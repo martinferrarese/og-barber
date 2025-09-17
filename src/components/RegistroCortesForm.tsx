@@ -8,9 +8,11 @@ interface Props {
   onContinue?: (data: RegistroCortes) => void;
   /** Si se pasa, el campo fecha queda fijo y oculto */
   fechaFija?: string;
+  /** Lista de barberos que ya se cargaron ese día y deben ocultarse en la selección */
+  barberosExcluidos?: string[];
 }
 
-export default function RegistroCortesForm({ onContinue, fechaFija }: Props) {
+export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcluidos = [] }: Props) {
   const router = useRouter();
   const today = fechaFija ?? new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const [barberos, setBarberos] = useState<string[]>([]);
@@ -26,7 +28,9 @@ export default function RegistroCortesForm({ onContinue, fechaFija }: Props) {
   useEffect(() => {
     fetch("/api/barberos")
       .then((res) => res.json())
-      .then(setBarberos)
+      .then((data: string[]) =>
+        setBarberos(data.filter((b) => !barberosExcluidos.includes(b))),
+      )
       .catch(console.error);
   }, []);
 
