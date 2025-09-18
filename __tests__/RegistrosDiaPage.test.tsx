@@ -42,7 +42,7 @@ describe('RegistrosDiaPage', () => {
     const totalCalc = efectivoTotalCalc + mpTotalCalc;
 
     await waitFor(() => {
-      const fechaFormateada = new Date('2025-09-16').toLocaleDateString('es-AR');
+      const fechaFormateada = new Date('2025-09-16').toLocaleDateString('es-AR', { timeZone: 'UTC' });
       expect(screen.getByText(fechaFormateada)).toBeInTheDocument();
       expect(
         screen.getByText((text) =>

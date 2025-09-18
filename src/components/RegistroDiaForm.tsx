@@ -13,21 +13,20 @@ export default function RegistroDiaForm() {
   const [registros, setRegistros] = useState<RegistroCortes[]>([]);
   // índice del barbero que se está editando, null si ninguno
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  // fase: 'seleccion' (elegir fecha), 'form' (carga barberos), 'mensaje' (fecha existente)
-  const [fase, setFase] = useState<'seleccion' | 'form' | 'mensaje'>('seleccion');
+  // fase: 'seleccion' (elegir fecha), 'form' (carga/edición)
+  const [fase, setFase] = useState<'seleccion' | 'form'>('seleccion');
 
   const [mostrandoFormulario, setMostrandoFormulario] = useState(true);
 
   async function handleSeleccionFecha() {
     try {
       const res = await fetch("/api/registros-dia");
-      const data: { fecha: string }[] = await res.json();
-      const existe = data.some((d) => d.fecha === fechaDia);
-      if (existe) {
-        setFase('mensaje');
-      } else {
-        setFase('form');
+      const data: { fecha: string; barberos: RegistroCortes[] }[] = await res.json();
+      const existente = data.find((d) => d.fecha === fechaDia);
+      if (existente) {
+        setRegistros(existente.barberos);
       }
+      setFase('form');
     } catch (e) {
       console.error(e);
     }
@@ -65,32 +64,7 @@ export default function RegistroDiaForm() {
       .catch(console.error);
   }
 
-  if (fase === 'mensaje') {
-    return (
-      <div className="max-w-xl mx-auto p-6 text-center">
-        <p className="text-red-600 font-medium mb-4">
-          La fecha {fechaDia} ya fue cargada previamente.
-        </p>
-        <p className="text-sm mb-6">
-          Puedes consultarla y editarla desde la sección &quot;Registros diarios&quot;.
-        </p>
-        <div className="flex justify-center gap-4">
-          <button
-            className="btn btn-primary"
-            onClick={() => router.push("/registros-dia")}
-          >
-            Ir a registros diarios
-          </button>
-          <button
-            className="btn btn-secondary"
-            onClick={() => setFase('seleccion')}
-          >
-            Cambiar fecha
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Eliminado fase mensaje; siempre se permite editar
 
   if (fase === 'seleccion') {
     return (
