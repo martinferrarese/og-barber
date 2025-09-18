@@ -12,7 +12,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Eliminado color scheme alterno, fondo unificado */
 
 body {
   background: var(--background);

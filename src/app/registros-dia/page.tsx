@@ -25,7 +25,7 @@ export default async function RegistrosDiaPage() {
   const registros = await readRegistrosDiaKV();
 
   return (
-    <div className="max-w-3xl mx-auto p-8 flex flex-col gap-6">
+    <div className="max-w-3xl mx-auto p-4 md:p-8 flex flex-col gap-6">
       <h1 className="text-2xl font-bold">Registros diarios</h1>
 
       {registros.length === 0 ? (

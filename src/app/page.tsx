@@ -44,19 +44,19 @@ function HomeClient() {
       </p>
       <a
         href="/registro-dia"
-        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90"
+        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90 md:inline-block md:w-auto w-full text-center"
       >
         Cargar día
       </a>
       <a
         href="/registros-dia"
-        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90"
+        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90 md:inline-block md:w-auto w-full text-center"
       >
         Ver registros diarios
       </a>
       <a
         href="/barberos"
-        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90"
+        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90 md:inline-block md:w-auto w-full text-center"
       >
         Administrar barberos
       </a>

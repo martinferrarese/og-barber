@@ -12,7 +12,7 @@ export default async function BarberosPage() {
   const barberos = await readBarberosKV();
 
   return (
-    <div className="p-8 max-w-2xl mx-auto flex flex-col gap-8">
+    <div className="p-4 md:p-8 max-w-2xl mx-auto flex flex-col gap-8">
       <div>
         <h1 className="text-2xl font-bold mb-4">Administrar barberos</h1>
         <BarberoForm />
