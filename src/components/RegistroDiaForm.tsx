@@ -1,28 +1,27 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RegistroCortesForm from "@/components/RegistroCortesForm";
 import type { RegistroCortes, RegistroCortesDia } from "@/types/registroCortes";
 import { useRouter } from "next/navigation";
 
-export default function RegistroDiaForm() {
+export default function RegistroDiaForm({ initialFecha }: { initialFecha?: string } = {}) {
   const router = useRouter();
-  // Fecha seleccionada para el registro del día. Por defecto, hoy.
   const todayDefault = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const [fechaDia, setFechaDia] = useState<string>(todayDefault);
+  const [fechaDia, setFechaDia] = useState<string>(initialFecha ?? todayDefault);
 
   const [registros, setRegistros] = useState<RegistroCortes[]>([]);
-  // índice del barbero que se está editando, null si ninguno
+
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  // fase: 'seleccion' (elegir fecha), 'form' (carga/edición)
-  const [fase, setFase] = useState<'seleccion' | 'form'>('seleccion');
+
+  const [fase, setFase] = useState<'seleccion' | 'form'>(initialFecha ? 'form' : 'seleccion');
 
   const [mostrandoFormulario, setMostrandoFormulario] = useState(true);
 
-  async function handleSeleccionFecha() {
+  async function cargarDatosDia(fecha: string) {
     try {
       const res = await fetch("/api/registros-dia");
       const data: { fecha: string; barberos: RegistroCortes[] }[] = await res.json();
-      const existente = data.find((d) => d.fecha === fechaDia);
+      const existente = data.find((d) => d.fecha === fecha);
       if (existente) {
         setRegistros(existente.barberos);
       }
@@ -31,6 +30,17 @@ export default function RegistroDiaForm() {
       console.error(e);
     }
   }
+
+  async function handleSeleccionFecha() {
+    await cargarDatosDia(fechaDia);
+  }
+
+  useEffect(() => {
+    if (initialFecha) {
+      cargarDatosDia(initialFecha);
+    }
+     
+  }, [initialFecha]);
 
   function handleAgregarBarbero(rc: RegistroCortes) {
     setRegistros((prev) => [...prev, rc]);

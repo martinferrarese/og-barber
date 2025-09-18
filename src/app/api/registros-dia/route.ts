@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import {
-  addRegistroDiaKV,
   readRegistrosDiaKV,
+  deleteRegistroDiaKV,
+  upsertRegistroDiaKV,
 } from '@/utils/registrosDiaFromDB';
 
 export async function GET() {
@@ -11,6 +12,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const data = await request.json();
-  await addRegistroDiaKV(data);
+  await upsertRegistroDiaKV(data);
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(request: Request) {
+  const { fecha } = await request.json();
+  await deleteRegistroDiaKV(fecha);
   return NextResponse.json({ ok: true });
 }

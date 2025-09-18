@@ -22,3 +22,26 @@ export async function readRegistrosDiaKV(): Promise<RegistroCortesDia[]> {
     })
     .filter(Boolean) as RegistroCortesDia[];
 }
+
+export async function deleteRegistroDiaKV(fecha: string) {
+  const registros = await readRegistrosDiaKV();
+  const filtrados = registros.filter((d) => d.fecha !== fecha);
+
+  await kv.del(KEY);
+  if (filtrados.length > 0) {
+    for (let i = filtrados.length - 1; i >= 0; i--) {
+      await kv.lpush(KEY, JSON.stringify(filtrados[i]));
+    }
+  }
+}
+
+export async function upsertRegistroDiaKV(registro: RegistroCortesDia) {
+  const registros = await readRegistrosDiaKV();
+  const sinFecha = registros.filter((d) => d.fecha !== registro.fecha);
+  sinFecha.unshift(registro);
+  await kv.del(KEY);
+
+  for (let i = sinFecha.length - 1; i >= 0; i--) {
+    await kv.lpush(KEY, JSON.stringify(sinFecha[i]));
+  }
+}

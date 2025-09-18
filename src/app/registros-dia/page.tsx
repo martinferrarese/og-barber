@@ -1,5 +1,6 @@
 import { readRegistrosDiaKV } from '@/utils/registrosDiaFromDB';
 import type { RegistroCortesDia } from '@/types/registroCortes';
+import DeleteRegistroDiaButton from '@/components/DeleteRegistroDiaButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +49,15 @@ export default async function RegistrosDiaPage() {
                     </span>
                     <span className="font-semibold">Total: ${total.toLocaleString('es-AR')}</span>
                   </summary>
+                  <div className="flex gap-4 mt-2">
+                    <a
+                      href={`/registro-dia?fecha=${encodeURIComponent(dia.fecha)}`}
+                      className="btn btn-secondary text-xs"
+                    >
+                      Editar día
+                    </a>
+                    <DeleteRegistroDiaButton fecha={dia.fecha} />
+                  </div>
 
                   <div className="mt-3 pl-4">
                     {dia.barberos.map((b, i) => (

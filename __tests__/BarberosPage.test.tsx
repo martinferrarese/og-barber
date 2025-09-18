@@ -10,7 +10,7 @@ jest.mock("@/utils/barberosFromDB", () => {
   };
 });
 
-const { readBarberosKV, deleteBarberoKV } = jest.requireMock("@/utils/barberosFromDB");
+const { readBarberosKV } = jest.requireMock("@/utils/barberosFromDB");
 
 const mockFetch = jest.fn(() =>
   Promise.resolve({ json: () => Promise.resolve({ ok: true }) }),

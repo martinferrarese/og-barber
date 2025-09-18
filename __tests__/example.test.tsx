@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+
 
 function Sum(a: number, b: number) {
   return a + b;
