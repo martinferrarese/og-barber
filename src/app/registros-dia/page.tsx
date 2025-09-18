@@ -36,7 +36,8 @@ export default async function RegistrosDiaPage() {
           {registros.map((dia, idx) => {
             const { efectivo, mp } = calcularTotales(dia);
             const total = efectivo + mp;
-            const fechaFormateada = new Date(dia.fecha).toLocaleDateString('es-AR');
+            // Forzamos la zona horaria a UTC para evitar el desfase de un día
+            const fechaFormateada = new Date(dia.fecha).toLocaleDateString('es-AR', { timeZone: 'UTC' });
             return (
               <li key={idx} className="border rounded p-4">
                 <details className="cursor-pointer">
