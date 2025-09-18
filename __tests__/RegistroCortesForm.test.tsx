@@ -78,20 +78,20 @@ describe("RegistroCortesForm paso 2", () => {
     fireEvent.submit(screen.getByRole("button", { name: /guardar registros/i }));
 
     await waitFor(() => {
-      // segunda llamada a fetch debe ser al endpoint de registro
-      expect(mockFetch).toHaveBeenCalledWith(
-        "/api/registro-cortes",
-        expect.objectContaining({
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        }),
-      );
-      const body = JSON.parse((mockFetch.mock.calls[1][1] as RequestInit).body as string);
-      expect(body.barbero).toBe("Joaco");
-      expect(body.servicios).toEqual([
-        { tipo: "corte", efectivo: 5, mercado_pago: 2 },
-        { tipo: "corte_con_barba", efectivo: 0, mercado_pago: 2 },
-      ]);
+      expect(mockFetch.mock.calls.length).toBeGreaterThanOrEqual(2);
     });
-  });
+
+    // Verificamos la segunda llamada específicamente
+    const secondCall = mockFetch.mock.calls.find((call) => call[0] === "/api/registro-cortes");
+    expect(secondCall).toBeDefined();
+    const [, secondInit] = secondCall as [RequestInfo, RequestInit];
+    expect(secondInit.method).toBe("POST");
+    expect(secondInit.headers).toMatchObject({ "Content-Type": "application/json" });
+    const body = JSON.parse(secondInit.body as string);
+    expect(body.barbero).toBe("Joaco");
+    expect(body.servicios).toEqual([
+      { tipo: "corte", efectivo: 5, mercado_pago: 2 },
+      { tipo: "corte_con_barba", efectivo: 0, mercado_pago: 2 },
+    ]);
+    });
 });

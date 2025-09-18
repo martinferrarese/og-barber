@@ -57,6 +57,16 @@ export default function RegistroDiaForm({ initialFecha }: { initialFecha?: strin
     setMostrandoFormulario(false);
   }
 
+  function handleEliminarBarbero(index: number) {
+    setRegistros((prev) => prev.filter((_, i) => i !== index));
+    if (editingIndex !== null && editingIndex === index) {
+      setEditingIndex(null);
+      setMostrandoFormulario(false);
+    }
+    // Mostrar formulario para agregar uno nuevo
+    setMostrandoFormulario(true);
+  }
+
   function handleCerrarDia() {
     const payload: RegistroCortesDia = {
       fecha: fechaDia,
@@ -151,14 +161,22 @@ export default function RegistroDiaForm({ initialFecha }: { initialFecha?: strin
                 <span>
                   <span className="font-medium">{r.barbero}</span> – {r.servicios.reduce((acc, s) => acc + s.efectivo + s.mercado_pago, 0)} servicios
                 </span>
-                <button
-                  className="btn btn-secondary text-xs"
-                  onClick={() => {
-                    setEditingIndex(idx);
-                  }}
-                >
-                  Editar
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    className="btn btn-secondary text-xs"
+                    onClick={() => {
+                      setEditingIndex(idx);
+                    }}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    className="text-red-600 text-xs"
+                    onClick={() => handleEliminarBarbero(idx)}
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
