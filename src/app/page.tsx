@@ -3,6 +3,8 @@
 import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import logo from "@/assets/og-barber.jpeg";
 
 function HomeClient() {
   const searchParams = useSearchParams();
@@ -35,7 +37,7 @@ function HomeClient() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8 text-center gap-8">
-      <h1 className="text-4xl font-extrabold">OG Barber</h1>
+      <Image src={logo} alt="OG Barber" priority />
       <p className="text-lg max-w-md">
         Gestiona fácilmente los cortes diarios de tu barbería y lleva el control de
         pagos y barberos.
