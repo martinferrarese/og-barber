@@ -36,27 +36,23 @@ function HomeClient() {
   }, [showToast]);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8 text-center gap-8">
+    <main className="min-h-screen flex flex-col items-center justify-start p-8 text-center gap-8">
       <Image src={logo} alt="OG Barber" priority />
-      <p className="text-lg max-w-md">
-        Gestiona fácilmente los cortes diarios de tu barbería y lleva el control de
-        pagos y barberos.
-      </p>
       <a
         href="/registro-dia"
-        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90 md:inline-block md:w-auto w-full text-center"
+        className="btn btn-primary md:inline-block md:w-auto w-full text-center"
       >
         Cargar día
       </a>
       <a
         href="/registros-dia"
-        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90 md:inline-block md:w-auto w-full text-center"
+        className="btn btn-primary md:inline-block md:w-auto w-full text-center"
       >
         Ver registros diarios
       </a>
       <a
         href="/barberos"
-        className="bg-foreground text-background px-6 py-3 rounded font-medium hover:opacity-90 md:inline-block md:w-auto w-full text-center"
+        className="btn btn-primary md:inline-block md:w-auto w-full text-center"
       >
         Administrar barberos
       </a>

@@ -158,7 +158,7 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
         <button
           type="submit"
           disabled={!canContinue}
-          className={`bg-foreground text-background py-2 px-4 rounded hover:opacity-90 ${!canContinue ? "opacity-50 cursor-not-allowed" : ""}`}
+          className={`btn btn-primary ${!canContinue ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           Continuar
         </button>
@@ -213,7 +213,7 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
 
       <button
         type="submit"
-        className="bg-foreground text-background py-2 px-4 rounded hover:opacity-90"
+        className="btn btn-primary"
       >
         Guardar registros
       </button>

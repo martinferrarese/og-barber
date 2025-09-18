@@ -30,7 +30,7 @@ export default function BarberoForm() {
       />
       <button
         type="submit"
-        className="bg-foreground text-background py-2 px-4 rounded hover:opacity-90"
+        className="btn btn-primary"
       >
         Agregar
       </button>

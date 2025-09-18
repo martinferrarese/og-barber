@@ -65,13 +65,13 @@ export default function RegistroDiaForm() {
         </p>
         <div className="flex justify-center gap-4">
           <button
-            className="bg-foreground text-background px-4 py-2 rounded hover:opacity-90"
+            className="btn btn-primary"
             onClick={() => router.push("/registros-dia")}
           >
             Ir a registros diarios
           </button>
           <button
-            className="border px-4 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="btn btn-secondary"
             onClick={() => setFase('seleccion')}
           >
             Cambiar fecha
@@ -97,7 +97,7 @@ export default function RegistroDiaForm() {
           />
         </div>
         <button
-          className="bg-foreground text-background px-4 py-2 rounded max-w-xs hover:opacity-90"
+          className="btn btn-primary max-w-xs"
           onClick={handleSeleccionFecha}
         >
           Seleccionar fecha
@@ -152,7 +152,7 @@ export default function RegistroDiaForm() {
       <div className="flex gap-4 mt-4">
         {registros.length > 0 && (
           <button
-            className="bg-foreground text-background px-4 py-2 rounded hover:opacity-90"
+            className="btn btn-primary"
             onClick={() => setMostrandoFormulario(true)}
           >
             Agregar otro barbero
@@ -161,7 +161,7 @@ export default function RegistroDiaForm() {
         {registros.length > 0 && (
           <button
             onClick={handleCerrarDia}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:opacity-90"
+            className="btn btn-primary bg-green-600 text-white"
           >
             Cerrar día
           </button>
