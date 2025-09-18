@@ -42,7 +42,8 @@ describe('RegistrosDiaPage', () => {
     const totalCalc = efectivoTotalCalc + mpTotalCalc;
 
     await waitFor(() => {
-      expect(screen.getByText('2025-09-16')).toBeInTheDocument();
+      const fechaFormateada = new Date('2025-09-16').toLocaleDateString('es-AR');
+      expect(screen.getByText(fechaFormateada)).toBeInTheDocument();
       expect(
         screen.getByText((text) =>
           text.includes(`Total: $${totalCalc.toLocaleString('es-AR')}`),

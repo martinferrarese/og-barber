@@ -23,6 +23,7 @@ export { calcularTotales };
 
 export default async function RegistrosDiaPage() {
   const registros = await readRegistrosDiaKV();
+  registros.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-8 flex flex-col gap-6">
@@ -35,14 +36,16 @@ export default async function RegistrosDiaPage() {
           {registros.map((dia, idx) => {
             const { efectivo, mp } = calcularTotales(dia);
             const total = efectivo + mp;
+            const fechaFormateada = new Date(dia.fecha).toLocaleDateString('es-AR');
             return (
               <li key={idx} className="border rounded p-4">
                 <details className="cursor-pointer">
-                  <summary className="flex justify-between font-medium">
-                    <span>{dia.fecha}</span>
+                  <summary className="flex flex-col font-medium gap-1">
+                    <span className="font-semibold text-xl">{fechaFormateada}</span>
                     <span>
-                      Total: ${total.toLocaleString('es-AR')} — Ef. ${efectivo.toLocaleString('es-AR')} / MP ${mp.toLocaleString('es-AR')}
+                      Ef. ${efectivo.toLocaleString('es-AR')} / MP ${mp.toLocaleString('es-AR')}
                     </span>
+                    <span className="font-semibold">Total: ${total.toLocaleString('es-AR')}</span>
                   </summary>
 
                   <div className="mt-3 pl-4">
