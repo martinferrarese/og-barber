@@ -10,17 +10,22 @@ interface Props {
   fechaFija?: string;
   /** Lista de barberos que ya se cargaron ese día y deben ocultarse en la selección */
   barberosExcluidos?: string[];
+  /** Si se provee, el formulario se comporta en modo edición y precarga los datos */
+  initialData?: RegistroCortes;
 }
 
-export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcluidos = [] }: Props) {
+export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcluidos = [], initialData }: Props) {
   const router = useRouter();
+
   const today = fechaFija ?? new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
   const [barberos, setBarberos] = useState<string[]>([]);
+
   const [formData, setFormData] = useState<{ fecha: string; barbero: string }>(
-    {
-      fecha: today,
-      barbero: "",
-    },
+    () => ({
+      fecha: initialData?.fecha ?? today,
+      barbero: initialData?.barbero ?? "",
+    }),
   );
 
   const canContinue = barberos.length > 0 && formData.barbero !== "";
@@ -45,12 +50,28 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
   }
 
   // Paso interno: 1 = seleccionar fecha/barbero, 2 = ingresar servicios
-  const [paso, setPaso] = useState<1 | 2>(1);
+  const [paso, setPaso] = useState<1 | 2>(initialData ? 2 : 1);
 
   // Estado para cantidades de servicios
-  const [servicios, setServicios] = useState({
-    corte: { efectivo: 0, mercado_pago: 0 },
-    corte_con_barba: { efectivo: 0, mercado_pago: 0 },
+  const [servicios, setServicios] = useState(() => {
+    if (initialData) {
+      const corte = initialData.servicios.find((s) => s.tipo === "corte");
+      const corteConBarba = initialData.servicios.find((s) => s.tipo === "corte_con_barba");
+      return {
+        corte: {
+          efectivo: corte?.efectivo ?? 0,
+          mercado_pago: corte?.mercado_pago ?? 0,
+        },
+        corte_con_barba: {
+          efectivo: corteConBarba?.efectivo ?? 0,
+          mercado_pago: corteConBarba?.mercado_pago ?? 0,
+        },
+      } as const;
+    }
+    return {
+      corte: { efectivo: 0, mercado_pago: 0 },
+      corte_con_barba: { efectivo: 0, mercado_pago: 0 },
+    } as const;
   });
 
   function handleServiciosChange(
@@ -166,13 +187,15 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
     );
   }
 
-  // Paso 2
+  // Paso 2 (también para edición)
   return (
     <form
       onSubmit={handleGuardar}
       className="flex flex-col gap-4 max-w-sm w-full mx-auto"
     >
-      <h2 className="text-lg font-semibold">Servicios realizados</h2>
+      <h2 className="text-lg font-semibold">
+        {initialData ? `Editar servicios de ${initialData.barbero}` : "Servicios realizados"}
+      </h2>
       {(["corte", "corte_con_barba"] as const).map((tipo) => (
         <div key={tipo} className="border p-3 rounded">
           <h3 className="font-medium mb-2">
@@ -213,11 +236,8 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
         <p className="font-semibold">Total: ${totalServicios.toLocaleString("es-AR")}</p>
       </div>
 
-      <button
-        type="submit"
-        className="btn btn-primary"
-      >
-        Guardar registros
+      <button type="submit" className="btn btn-primary">
+        {initialData ? "Guardar cambios" : "Guardar registros"}
       </button>
     </form>
   );

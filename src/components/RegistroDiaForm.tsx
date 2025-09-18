@@ -11,6 +11,8 @@ export default function RegistroDiaForm() {
   const [fechaDia, setFechaDia] = useState<string>(todayDefault);
 
   const [registros, setRegistros] = useState<RegistroCortes[]>([]);
+  // índice del barbero que se está editando, null si ninguno
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   // fase: 'seleccion' (elegir fecha), 'form' (carga barberos), 'mensaje' (fecha existente)
   const [fase, setFase] = useState<'seleccion' | 'form' | 'mensaje'>('seleccion');
 
@@ -35,6 +37,15 @@ export default function RegistroDiaForm() {
     setRegistros((prev) => [...prev, rc]);
     // volver a mostrar formulario para otro barbero
     setMostrandoFormulario(true);
+  }
+
+  function handleActualizarBarbero(rc: RegistroCortes) {
+    if (editingIndex === null) return;
+    setRegistros((prev) =>
+      prev.map((item, idx) => (idx === editingIndex ? rc : item)),
+    );
+    setEditingIndex(null);
+    setMostrandoFormulario(false);
   }
 
   function handleCerrarDia() {
@@ -125,7 +136,7 @@ export default function RegistroDiaForm() {
 
       <h1 className="text-2xl font-bold">Registro de cortes del día {fechaDia}</h1>
 
-      {mostrandoFormulario && (
+      {mostrandoFormulario && !editingIndex && (
         <RegistroCortesForm
           fechaFija={fechaDia}
           barberosExcluidos={registros.map((r) => r.barbero)}
@@ -136,13 +147,34 @@ export default function RegistroDiaForm() {
         />
       )}
 
+      {editingIndex !== null && (
+        <RegistroCortesForm
+          initialData={registros[editingIndex]}
+          fechaFija={fechaDia}
+          barberosExcluidos={registros
+            .filter((_, idx) => idx !== editingIndex)
+            .map((r) => r.barbero)}
+          onContinue={handleActualizarBarbero}
+        />
+      )}
+
       {registros.length > 0 && (
         <section className="border-t pt-4">
           <h2 className="text-lg font-semibold mb-2">Barberos cargados</h2>
           <ul className="space-y-2 text-sm">
             {registros.map((r, idx) => (
-              <li key={idx} className="border p-3 rounded">
-                <span className="font-medium">{r.barbero}</span> – {r.servicios.reduce((acc, s) => acc + s.efectivo + s.mercado_pago, 0)} servicios
+              <li key={idx} className="border p-3 rounded flex justify-between items-center">
+                <span>
+                  <span className="font-medium">{r.barbero}</span> – {r.servicios.reduce((acc, s) => acc + s.efectivo + s.mercado_pago, 0)} servicios
+                </span>
+                <button
+                  className="btn btn-secondary text-xs"
+                  onClick={() => {
+                    setEditingIndex(idx);
+                  }}
+                >
+                  Editar
+                </button>
               </li>
             ))}
           </ul>
@@ -150,7 +182,7 @@ export default function RegistroDiaForm() {
       )}
 
       <div className="flex gap-4 mt-4">
-        {registros.length > 0 && (
+        {editingIndex === null && registros.length > 0 && (
           <button
             className="btn btn-primary"
             onClick={() => setMostrandoFormulario(true)}
@@ -158,7 +190,7 @@ export default function RegistroDiaForm() {
             Agregar otro barbero
           </button>
         )}
-        {registros.length > 0 && (
+        {editingIndex === null && registros.length > 0 && (
           <button
             onClick={handleCerrarDia}
             className="btn btn-primary bg-green-600 text-white"
