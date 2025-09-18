@@ -188,6 +188,8 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
                   type="number"
                   min={0}
                   value={servicios[tipo][pago]}
+                  onFocus={(e) => e.target.select()}
+                  onContextMenu={(e) => e.preventDefault()}
                   onChange={(e) =>
                     handleServiciosChange(
                       tipo,
