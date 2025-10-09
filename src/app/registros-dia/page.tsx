@@ -10,14 +10,19 @@ function calcularTotales(dia: RegistroCortesDia) {
   const PRECIOS = { corte: 11000, corte_con_barba: 12000 } as const;
   let efectivo = 0;
   let mp = 0;
+  let especiales = 0;
   dia.barberos.forEach((b) => {
     b.servicios.forEach((s) => {
       const precio = PRECIOS[s.tipo];
       efectivo += s.efectivo * precio;
       mp += s.mercado_pago * precio;
     });
+    // Sumar cortes especiales
+    if (b.cortesEspeciales) {
+      especiales += b.cortesEspeciales.reduce((acc, c) => acc + c.monto, 0);
+    }
   });
-  return { efectivo, mp };
+  return { efectivo, mp, especiales };
 }
 
 export { calcularTotales };
@@ -35,8 +40,8 @@ export default async function RegistrosDiaPage() {
       ) : (
         <ul className="space-y-4">
           {registros.map((dia, idx) => {
-            const { efectivo, mp } = calcularTotales(dia);
-            const total = efectivo + mp;
+            const { efectivo, mp, especiales } = calcularTotales(dia);
+            const total = efectivo + mp + especiales;
             // Forzamos la zona horaria a UTC para evitar el desfase de un día
             const fechaFormateada = new Date(dia.fecha).toLocaleDateString('es-AR', { timeZone: 'UTC' });
             return (
@@ -46,6 +51,7 @@ export default async function RegistrosDiaPage() {
                     <span className="font-semibold text-xl">{fechaFormateada}</span>
                     <span>
                       Ef. ${efectivo.toLocaleString('es-AR')} / MP ${mp.toLocaleString('es-AR')}
+                      {especiales > 0 && ` / Especiales $${especiales.toLocaleString('es-AR')}`}
                     </span>
                     <span className="font-semibold">Total: ${total.toLocaleString('es-AR')}</span>
                   </summary>
@@ -70,6 +76,16 @@ export default async function RegistrosDiaPage() {
                             </li>
                           ))}
                         </ul>
+                        {b.cortesEspeciales && b.cortesEspeciales.length > 0 && (
+                          <div className="mt-2 ml-4">
+                            <p className="text-sm font-medium">Cortes especiales:</p>
+                            <ul className="text-sm ml-4 list-disc">
+                              {b.cortesEspeciales.map((c, j) => (
+                                <li key={j}>${c.monto.toLocaleString('es-AR')}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

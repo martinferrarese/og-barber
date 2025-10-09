@@ -71,6 +71,13 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
     } as const;
   });
 
+  // Estado para cortes especiales
+  const [cortesEspeciales, setCortesEspeciales] = useState<{ monto: number }[]>(
+    () => initialData?.cortesEspeciales ?? []
+  );
+  const [mostrandoInputEspecial, setMostrandoInputEspecial] = useState(false);
+  const [montoEspecial, setMontoEspecial] = useState<number>(0);
+
   function handleServiciosChange(
     tipo: "corte" | "corte_con_barba",
     pago: "efectivo" | "mercado_pago",
@@ -83,6 +90,18 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
         [pago]: value,
       },
     }));
+  }
+
+  function handleAgregarCorteEspecial() {
+    if (montoEspecial > 0) {
+      setCortesEspeciales((prev) => [...prev, { monto: montoEspecial }]);
+      setMontoEspecial(0);
+      setMostrandoInputEspecial(false);
+    }
+  }
+
+  function handleEliminarCorteEspecial(index: number) {
+    setCortesEspeciales((prev) => prev.filter((_, i) => i !== index));
   }
 
   function handlePaso1Submit(e: React.FormEvent) {
@@ -99,6 +118,7 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
         { tipo: "corte" as const, ...servicios.corte },
         { tipo: "corte_con_barba" as const, ...servicios.corte_con_barba },
       ],
+      cortesEspeciales: cortesEspeciales.length > 0 ? cortesEspeciales : undefined,
     };
     if (onContinue) {
       onContinue(payload);
@@ -122,7 +142,8 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
   const mpTotal =
     servicios.corte.mercado_pago * PRECIOS.corte +
     servicios.corte_con_barba.mercado_pago * PRECIOS.corte_con_barba;
-  const totalServicios = efectivoTotal + mpTotal;
+  const totalEspeciales = cortesEspeciales.reduce((acc, c) => acc + c.monto, 0);
+  const totalServicios = efectivoTotal + mpTotal + totalEspeciales;
 
   if (paso === 1) {
     return (
@@ -225,11 +246,79 @@ export default function RegistroCortesForm({ onContinue, fechaFija, barberosExcl
         </div>
       ))}
 
+      {/* Sección de cortes especiales */}
+      <div className="border-t pt-4">
+        <h3 className="font-medium mb-2">Cortes especiales</h3>
+        
+        {cortesEspeciales.length > 0 && (
+          <ul className="space-y-2 mb-3 text-sm">
+            {cortesEspeciales.map((corte, idx) => (
+              <li key={idx} className="flex justify-between items-center border p-2 rounded">
+                <span>${corte.monto.toLocaleString("es-AR")}</span>
+                <button
+                  type="button"
+                  onClick={() => handleEliminarCorteEspecial(idx)}
+                  className="text-red-600 text-xs"
+                >
+                  Eliminar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {!mostrandoInputEspecial ? (
+          <button
+            type="button"
+            onClick={() => setMostrandoInputEspecial(true)}
+            className="btn btn-secondary text-sm"
+          >
+            + Agregar corte especial
+          </button>
+        ) : (
+          <div className="flex gap-2 items-end">
+            <label className="flex flex-col gap-1 flex-1">
+              <span className="text-sm">Monto</span>
+              <input
+                type="number"
+                min={1}
+                value={montoEspecial || ""}
+                onChange={(e) => setMontoEspecial(parseInt(e.target.value, 10) || 0)}
+                onFocus={(e) => e.target.select()}
+                className="border rounded px-2 py-1"
+                placeholder="Ej: 5000"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={handleAgregarCorteEspecial}
+              disabled={montoEspecial <= 0}
+              className={`btn btn-primary text-sm ${montoEspecial <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              Confirmar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMostrandoInputEspecial(false);
+                setMontoEspecial(0);
+              }}
+              className="btn btn-secondary text-sm"
+            >
+              Cancelar
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Resumen de totales */}
       <div className="border-t pt-4 text-sm">
         <h3 className="font-medium mb-2">Resumen</h3>
         <p>Efectivo: ${efectivoTotal.toLocaleString("es-AR")}</p>
         <p>Mercado Pago: ${mpTotal.toLocaleString("es-AR")}</p>
+        {totalEspeciales > 0 && (
+          <p>Cortes especiales: ${totalEspeciales.toLocaleString("es-AR")}</p>
+        )}
         <p className="font-semibold">Total: ${totalServicios.toLocaleString("es-AR")}</p>
       </div>
 
