@@ -1,11 +1,14 @@
 import "@testing-library/jest-dom";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+
+jest.mock("@/utils/registrosDiaFromDB", () => ({
+  readRegistrosDiaKV: jest.fn(),
+}));
+
 import RegistrosDiaPage from "@/app/registros-dia/page";
 import DeleteRegistroDiaButton from "@/components/DeleteRegistroDiaButton";
 import type { RegistroCortesDia } from "@/types/registroCortes";
-
-const mockFetch = jest.fn();
-global.fetch = mockFetch as unknown as typeof fetch;
+import { readRegistrosDiaKV } from "@/utils/registrosDiaFromDB";
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -29,16 +32,14 @@ describe("Interacciones página registros-dia", () => {
   ];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it("muestra enlace de edición con fecha correcta", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockData,
-    });
+    (readRegistrosDiaKV as jest.Mock).mockResolvedValue(mockData);
 
-    render(<RegistrosDiaPage />);
+    const element = await RegistrosDiaPage();
+    render(element);
 
     await waitFor(() => {
       const editLink = screen.getByRole("link", { name: /Editar día/i });
@@ -47,10 +48,9 @@ describe("Interacciones página registros-dia", () => {
   });
 
   it("llama al endpoint DELETE al hacer clic en Eliminar", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ ok: true }),
-    });
+    global.fetch = jest.fn().mockResolvedValue({
+      json: () => Promise.resolve(mockData),
+    }) as unknown as typeof fetch;
 
     render(<DeleteRegistroDiaButton fecha="2025-09-17" />);
 
@@ -58,7 +58,7 @@ describe("Interacciones página registros-dia", () => {
     fireEvent.click(btn);
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("/api/registros-dia", expect.objectContaining({
+      expect(global.fetch).toHaveBeenCalledWith("/api/registros-dia", expect.objectContaining({
         method: "DELETE",
         body: JSON.stringify({ fecha: "2025-09-17" }),
       }));

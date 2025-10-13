@@ -1,55 +1,77 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import React from "react";
 import BarberosPage from "@/app/barberos/page";
 
-// Mock fetch globalmente
-const mockFetch = jest.fn();
-(global as { fetch: jest.Mock }).fetch = mockFetch;
+jest.mock("@/utils/barberosFromDB", () => {
+  return {
+    readBarberosKV: jest.fn(),
+    deleteBarberoKV: jest.fn(),
+  };
+});
 
-const mockRefresh = jest.fn();
+const { readBarberosKV } = jest.requireMock("@/utils/barberosFromDB");
+
+const mockFetch = jest.fn(() =>
+  Promise.resolve({ json: () => Promise.resolve({ ok: true }) }),
+);
+
+global.fetch = mockFetch as unknown as typeof fetch;
+
+let rerenderPage: (() => Promise<void>) | null = null;
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
-    refresh: mockRefresh,
+    refresh: () => {
+      if (rerenderPage) void rerenderPage();
+    },
   }),
 }));
 
 describe("BarberosPage", () => {
-  beforeEach(() => {
-    mockFetch.mockClear();
-    mockRefresh.mockClear();
-  });
+  it("muestra al nuevo barbero después de agregarlo", async () => {
+    readBarberosKV.mockResolvedValueOnce(["Juan"]);
 
-  it("muestra lista de barberos correctamente", async () => {
-    // Mock GET /api/barberos
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ["Juan", "Carlos"],
+    const { rerender, findByText } = await act(async () => {
+      const res = await BarberosPage();
+      return render(<>{res}</>);
     });
 
-    render(<BarberosPage />);
+    rerenderPage = async () => {
+      readBarberosKV.mockResolvedValueOnce(["Juan", "Carlos"]);
+      await act(async () => {
+        const ui = await BarberosPage();
+        rerender(<>{ui}</>);
+      });
+    };
 
-    // Esperar a que termine el loading
-    await waitFor(() => {
-      expect(screen.queryByText(/cargando/i)).not.toBeInTheDocument();
-    });
+    expect(await findByText("Juan")).toBeInTheDocument();
 
-    // Verificar que ambos barberos aparecen
-    expect(screen.getByText("Juan")).toBeInTheDocument();
-    expect(screen.getByText("Carlos")).toBeInTheDocument();
+    const input = screen.getByPlaceholderText(/nuevo barbero/i);
+    const button = screen.getByRole("button", { name: /agregar/i });
+
+    await userEvent.type(input, "Carlos");
+    await userEvent.click(button);
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/barberos",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: "Carlos" }),
+      }),
+    );
+
+    expect(await findByText("Carlos")).toBeInTheDocument();
   });
 
   it("muestra mensaje cuando la lista está vacía", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => [],
-    });
+    readBarberosKV.mockResolvedValueOnce([]);
 
-    render(<BarberosPage />);
-
-    // Esperar a que termine el loading
-    await waitFor(() => {
-      expect(screen.queryByText(/cargando/i)).not.toBeInTheDocument();
+    await act(async () => {
+      const res = await BarberosPage();
+      render(<>{res}</>);
     });
 
     expect(
@@ -57,26 +79,57 @@ describe("BarberosPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("muestra botones de eliminar para cada barbero", async () => {
-    // Mock con dos barberos
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ["Juan", "Carlos"],
+  it("elimina un barbero y actualiza la lista", async () => {
+    // Lista inicial con dos barberos
+    readBarberosKV.mockResolvedValueOnce(["Juan", "Carlos"]);
+
+    const { rerender, findByText, queryByText } = await act(async () => {
+      const res = await BarberosPage();
+      return render(<>{res}</>);
     });
 
-    render(<BarberosPage />);
+    // Configurar refresh para devolver solo uno
+    rerenderPage = async () => {
+      readBarberosKV.mockResolvedValueOnce(["Juan"]);
+      await act(async () => {
+        const ui = await BarberosPage();
+        rerender(<>{ui}</>);
+      });
+    };
 
-    // Esperar a que termine el loading
-    await waitFor(() => {
-      expect(screen.queryByText(/cargando/i)).not.toBeInTheDocument();
+    // Deben aparecer ambos nombres inicialmente
+    expect(await findByText("Carlos")).toBeInTheDocument();
+    expect(await findByText("Juan")).toBeInTheDocument();
+
+    // Hacer clic en eliminar Carlos
+    const deleteBtn = screen
+      .getAllByRole("button", { name: /eliminar/i })
+      .find((btn) =>
+        btn.parentElement?.textContent?.includes("Carlos"),
+      ) as HTMLButtonElement;
+
+    await act(async () => {
+      await userEvent.click(deleteBtn);
+
+      // Después del clic, el botón debe mostrar estado de carga y estar deshabilitado
+      expect(deleteBtn).toBeDisabled();
+      expect(deleteBtn).toHaveTextContent(/eliminando/i);
+
+      // Se debe haber hecho la petición DELETE
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/barberos",
+        expect.objectContaining({
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre: "Carlos" }),
+        }),
+      );
+
+      if (rerenderPage) await rerenderPage();
     });
 
-    // Verificar que hay botones de eliminar para ambos barberos
-    const deleteButtons = screen.getAllByRole("button", { name: /eliminar/i });
-    expect(deleteButtons).toHaveLength(2);
-    
-    // Verificar que ambos barberos están presentes
+    // Carlos ya no debe estar, Juan sí
+    expect(queryByText("Carlos")).not.toBeInTheDocument();
     expect(screen.getByText("Juan")).toBeInTheDocument();
-    expect(screen.getByText("Carlos")).toBeInTheDocument();
   });
 });

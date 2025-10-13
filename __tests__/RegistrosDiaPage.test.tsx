@@ -3,45 +3,38 @@ import { render, screen, waitFor } from '@testing-library/react';
 import RegistrosDiaPage from '@/app/registros-dia/page';
 import type { RegistroCortesDia } from '@/types/registroCortes';
 
-const mockData: RegistroCortesDia[] = [
-  {
-    fecha: '2025-09-16',
-    barberos: [
-      {
-        fecha: '2025-09-16',
-        barbero: 'Joaco',
-        servicios: [
-          { tipo: 'corte', efectivo: 5, mercado_pago: 2 },
-          { tipo: 'corte_con_barba', efectivo: 0, mercado_pago: 2 },
-        ],
-      },
-      {
-        fecha: '2025-09-16',
-        barbero: 'Elias',
-        servicios: [
-          { tipo: 'corte', efectivo: 2, mercado_pago: 7 },
-          { tipo: 'corte_con_barba', efectivo: 0, mercado_pago: 2 },
-        ],
-      },
-    ],
-  },
-];
-
-const mockFetch = jest.fn();
-global.fetch = mockFetch as unknown as typeof fetch;
+jest.mock('@/utils/registrosDiaFromDB', () => {
+  const mockData: RegistroCortesDia[] = [
+    {
+      fecha: '2025-09-16',
+      barberos: [
+        {
+          fecha: '2025-09-16',
+          barbero: 'Joaco',
+          servicios: [
+            { tipo: 'corte', efectivo: 5, mercado_pago: 2 },
+            { tipo: 'corte_con_barba', efectivo: 0, mercado_pago: 2 },
+          ],
+        },
+        {
+          fecha: '2025-09-16',
+          barbero: 'Elias',
+          servicios: [
+            { tipo: 'corte', efectivo: 2, mercado_pago: 7 },
+            { tipo: 'corte_con_barba', efectivo: 0, mercado_pago: 2 },
+          ],
+        },
+      ],
+    },
+  ];
+  return {
+    readRegistrosDiaKV: jest.fn().mockResolvedValue(mockData),
+  };
+});
 
 describe('RegistrosDiaPage', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('muestra totales correctos para efectivo y MP', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockData,
-    });
-
-    render(<RegistrosDiaPage />);
+    render(await RegistrosDiaPage());
 
     // Totales esperados
     const efectivoTotalCalc = 5 * 11000 + 2 * 11000; // 7 cortes efectivo
