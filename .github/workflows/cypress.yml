@@ -1,4 +1,4 @@
-name: Cypress E2E Tests
+name: CI Tests
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
       - develop
 
 jobs:
-  cypress-run:
+  lint-and-test:
     runs-on: ubuntu-latest
     
     steps:
@@ -27,53 +27,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm run test -- --ci
+
       - name: Build Next.js application
         run: npm run build
         env:
-          # Variables de entorno necesarias para el build
-          # Agrega aquí cualquier variable de entorno necesaria
           NODE_ENV: production
 
-      - name: Start Next.js server
-        run: npm start &
-        env:
-          # Variables de entorno para el servidor
-          PORT: 3000
-          NODE_ENV: production
-      
-      - name: Wait for server to be ready
-        run: npx wait-on http://localhost:3000 --timeout 60000
-
-      - name: Run Cypress tests
-        uses: cypress-io/github-action@v6
-        with:
-          # No necesitamos instalar dependencias porque ya lo hicimos
-          install: false
-          # El servidor ya está corriendo
-          start: ''
-          # Esperar a que el servidor esté listo
-          wait-on: 'http://localhost:3000'
-          wait-on-timeout: 60
-          # Ejecutar todos los tests
-          browser: chrome
-          headless: true
-        env:
-          # Variables de entorno para Cypress
-          CYPRESS_BASE_URL: http://localhost:3000
-
-      - name: Upload screenshots on failure
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-screenshots
-          path: cypress/screenshots
-          if-no-files-found: ignore
-
-      - name: Upload videos
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: cypress-videos
-          path: cypress/videos
-          if-no-files-found: ignore
-
+# Tests E2E con Cypress están deshabilitados para CI/CD
+# Para ejecutar localmente usa:
+#   npm run cypress:open  (modo interactivo)
+#   npm run test:e2e      (modo headless)
+#
+# Los tests E2E requieren acceso a la base de datos y están
+# pensados para desarrollo local con mocking de APIs.

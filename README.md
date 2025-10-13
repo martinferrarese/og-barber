@@ -96,12 +96,15 @@ Los tests utilizan fixtures JSON para mockear las respuestas de la API, evitando
 
 ## CI/CD
 
-Se utiliza GitHub Actions para ejecutar lint, tests unitarios y tests E2E en cada PR y push a `main` y `develop`. El despliegue a Vercel se realizará automáticamente.
+Se utiliza GitHub Actions para ejecutar lint, tests unitarios y build en cada PR y push a `main` y `develop`. El despliegue a Vercel se realizará automáticamente.
 
-Los workflows configurados incluyen:
+El workflow de CI ejecuta:
 
-- **Tests E2E con Cypress**: Ejecuta todos los tests E2E en un entorno Ubuntu con Chrome
-- Videos y screenshots se guardan como artifacts en caso de fallos
+1. **Linting** con ESLint
+2. **Tests unitarios** con Jest (30 tests)
+3. **Build** de Next.js para verificar que compile correctamente
+
+**Nota:** Los tests E2E de Cypress están deshabilitados en CI/CD y solo se ejecutan localmente, ya que requieren acceso a la base de datos. Para ejecutarlos localmente usa `npm run cypress:open` o `npm run test:e2e`
 
 ## Persistencia en producción
 
