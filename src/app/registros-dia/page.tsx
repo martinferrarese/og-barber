@@ -1,8 +1,10 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import { readRegistrosDiaKV } from '@/utils/registrosDiaFromDB';
 import type { RegistroCortesDia } from '@/types/registroCortes';
 import DeleteRegistroDiaButton from '@/components/DeleteRegistroDiaButton';
+
+export const dynamic = 'force-dynamic';
+
+export const metadata = { title: 'Registros diarios | OG Barber' };
 
 function calcularTotales(dia: RegistroCortesDia) {
   const PRECIOS = { corte: 11000, corte_con_barba: 12000 } as const;
@@ -25,37 +27,9 @@ function calcularTotales(dia: RegistroCortesDia) {
 
 export { calcularTotales };
 
-export default function RegistrosDiaPage() {
-  const [registros, setRegistros] = useState<RegistroCortesDia[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadRegistros();
-  }, []);
-
-  async function loadRegistros() {
-    try {
-      const res = await fetch('/api/registros-dia');
-      const data = await res.json();
-      const sorted = data.sort(
-        (a: RegistroCortesDia, b: RegistroCortesDia) =>
-          new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-      );
-      setRegistros(sorted);
-    } catch (error) {
-      console.error('Error cargando registros:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="max-w-3xl mx-auto p-4 md:p-8">
-        <p className="text-gray-500">Cargando...</p>
-      </div>
-    );
-  }
+export default async function RegistrosDiaPage() {
+  const registros = await readRegistrosDiaKV();
+  registros.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-8 flex flex-col gap-6">
