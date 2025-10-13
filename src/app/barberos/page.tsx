@@ -1,15 +1,36 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import BarberoForm from '@/components/BarberoForm';
 import DeleteBarberoButton from '@/components/DeleteBarberoButton';
-import { readBarberosKV } from '@/utils/barberosFromDB';
 
-export const dynamic = 'force-dynamic';
+export default function BarberosPage() {
+  const [barberos, setBarberos] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export const metadata = {
-  title: 'Administrar barberos | OG Barber',
-};
+  useEffect(() => {
+    loadBarberos();
+  }, []);
 
-export default async function BarberosPage() {
-  const barberos = await readBarberosKV();
+  async function loadBarberos() {
+    try {
+      const res = await fetch('/api/barberos');
+      const data = await res.json();
+      setBarberos(data);
+    } catch (error) {
+      console.error('Error cargando barberos:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-4 md:p-8 max-w-2xl mx-auto">
+        <p className="text-gray-500">Cargando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-2xl mx-auto flex flex-col gap-8">
