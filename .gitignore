@@ -43,7 +43,3 @@ next-env.d.ts
 # datos locales
 /data/
 
-# cypress
-cypress/screenshots
-cypress/videos
-cypress/downloads
