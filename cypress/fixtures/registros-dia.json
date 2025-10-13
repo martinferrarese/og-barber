@@ -1,0 +1,65 @@
+[
+  {
+    "fecha": "2025-10-01",
+    "barberos": [
+      {
+        "fecha": "2025-10-01",
+        "barbero": "Juan",
+        "servicios": [
+          {
+            "tipo": "corte",
+            "efectivo": 3,
+            "mercado_pago": 2
+          },
+          {
+            "tipo": "corte_con_barba",
+            "efectivo": 1,
+            "mercado_pago": 1
+          }
+        ],
+        "cortesEspeciales": [
+          {
+            "monto": 15000
+          }
+        ]
+      },
+      {
+        "fecha": "2025-10-01",
+        "barbero": "Pedro",
+        "servicios": [
+          {
+            "tipo": "corte",
+            "efectivo": 4,
+            "mercado_pago": 1
+          },
+          {
+            "tipo": "corte_con_barba",
+            "efectivo": 0,
+            "mercado_pago": 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "fecha": "2025-09-30",
+    "barberos": [
+      {
+        "fecha": "2025-09-30",
+        "barbero": "Carlos",
+        "servicios": [
+          {
+            "tipo": "corte",
+            "efectivo": 2,
+            "mercado_pago": 3
+          },
+          {
+            "tipo": "corte_con_barba",
+            "efectivo": 1,
+            "mercado_pago": 0
+          }
+        ]
+      }
+    ]
+  }
+]
