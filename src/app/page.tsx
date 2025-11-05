@@ -45,12 +45,6 @@ function HomeClient() {
         Carga rápida
       </a>
       <a
-        href="/registro-dia"
-        className="btn btn-primary md:inline-block md:w-auto w-full text-center"
-      >
-        Cargar día
-      </a>
-      <a
         href="/registros-dia"
         className="btn btn-primary md:inline-block md:w-auto w-full text-center"
       >

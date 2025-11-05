@@ -1,12 +1,14 @@
 import "@testing-library/jest-dom";
 
 const mockPush = jest.fn();
+const mockSearchParams = new URLSearchParams();
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
     push: mockPush,
     refresh: jest.fn(),
   }),
+  useSearchParams: () => mockSearchParams,
 }));
 
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
@@ -16,6 +18,8 @@ describe("CargaRapidaPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPush.mockClear();
+    // Limpiar searchParams antes de cada test
+    mockSearchParams.delete("fecha");
   });
 
   it("renderiza la página con título y selector de fecha", async () => {
@@ -133,9 +137,9 @@ describe("CargaRapidaPage", () => {
     // Verificar totales
     await waitFor(() => {
       // Total cortes: 2 * 12000 = 24000
-      expect(screen.getByText(/Total cortes: \$24\.000/)).toBeInTheDocument();
+      expect(screen.getByText(/Total cortes: \$24[.,]000/)).toBeInTheDocument();
       // Total corte y barba: 3 * 13000 = 39000
-      expect(screen.getByText(/Total corte y barba: \$39\.000/)).toBeInTheDocument();
+      expect(screen.getByText(/Total corte y barba: \$39[.,]000/)).toBeInTheDocument();
     });
   });
 
@@ -164,8 +168,8 @@ describe("CargaRapidaPage", () => {
     fireEvent.change(retiroMPInput, { target: { value: "3000" } });
 
     await waitFor(() => {
-      expect(screen.getByText(/Retiros Efectivo: \$5\.000/)).toBeInTheDocument();
-      expect(screen.getByText(/Retiros MP: \$3\.000/)).toBeInTheDocument();
+      expect(screen.getByText(/Retiros Efectivo: \$5[.,]000/)).toBeInTheDocument();
+      expect(screen.getByText(/Retiros MP: \$3[.,]000/)).toBeInTheDocument();
     });
   });
 

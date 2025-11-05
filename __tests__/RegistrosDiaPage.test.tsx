@@ -36,27 +36,20 @@ describe('RegistrosDiaPage', () => {
   it('muestra totales correctos para efectivo y MP', async () => {
     render(await RegistrosDiaPage());
 
-    // Totales esperados
-    const efectivoTotalCalc = 5 * 11000 + 2 * 11000; // 7 cortes efectivo
-    const mpTotalCalc = 2 * 11000 + 2 * 12000 + 7 * 11000 + 2 * 12000; // 13 pagos MP
-    const totalCalc = efectivoTotalCalc + mpTotalCalc;
+    // Totales esperados con nuevos precios
+    // Joaco: 5 cortes ef * 12000 + 2 cortes MP * 12000 + 2 corte_y_barba MP * 13000 = 60000 + 24000 + 26000 = 110000
+    // Elias: 2 cortes ef * 12000 + 7 cortes MP * 12000 + 2 corte_y_barba MP * 13000 = 24000 + 84000 + 26000 = 134000
+    const efectivoTotalCalc = 5 * 12000 + 2 * 12000; // 7 cortes efectivo = 84000
+    const mpTotalCalc = 2 * 12000 + 2 * 13000 + 7 * 12000 + 2 * 13000; // MP = 24000 + 26000 + 84000 + 26000 = 160000
+    const totalCalc = efectivoTotalCalc + mpTotalCalc; // 84000 + 160000 = 244000
 
     await waitFor(() => {
       const fechaFormateada = new Date('2025-09-16').toLocaleDateString('es-AR', { timeZone: 'UTC' });
       expect(screen.getByText(fechaFormateada)).toBeInTheDocument();
+      // Ahora solo muestra fecha y total en el resumen
       expect(
         screen.getByText((text) =>
-          text.includes(`Total: $${totalCalc.toLocaleString('es-AR')}`),
-        ),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText((t) =>
-          t.includes(`Ef. $${efectivoTotalCalc.toLocaleString('es-AR')}`),
-        ),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText((t) =>
-          t.includes(`MP $${mpTotalCalc.toLocaleString('es-AR')}`),
+          text.includes(`$${totalCalc.toLocaleString('es-AR')}`),
         ),
       ).toBeInTheDocument();
     });

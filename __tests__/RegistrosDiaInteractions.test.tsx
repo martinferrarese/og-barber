@@ -43,7 +43,7 @@ describe("Interacciones página registros-dia", () => {
 
     await waitFor(() => {
       const editLink = screen.getByRole("link", { name: /Editar día/i });
-      expect(editLink).toHaveAttribute("href", "/registro-dia?fecha=2025-09-17");
+      expect(editLink).toHaveAttribute("href", "/carga-rapida?fecha=2025-09-17");
     });
   });
 
