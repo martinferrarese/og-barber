@@ -56,26 +56,38 @@ export default async function RegistrosDiaPage() {
               'es-AR',
               { timeZone: 'UTC' }
             );
+            // Calcular resumen de servicios
+            let totalCortes = 0;
+            let totalCorteYBarba = 0;
+            dia.barberos.forEach((b) => {
+              b.servicios.forEach((s) => {
+                if (s.tipo === 'corte') {
+                  totalCortes += s.efectivo + s.mercado_pago;
+                } else if (s.tipo === 'corte_con_barba') {
+                  totalCorteYBarba += s.efectivo + s.mercado_pago;
+                }
+              });
+            });
+
             return (
               <li key={idx} className="border rounded p-4">
                 <details className="cursor-pointer">
-                  <summary className="flex flex-col font-medium gap-1">
+                  <summary className="flex justify-between items-center font-medium">
                     <span className="font-semibold text-xl">
                       {fechaFormateada}
                     </span>
-                    <span>
-                      Ef. ${efectivo.toLocaleString('es-AR')} / MP $
-                      {mp.toLocaleString('es-AR')}
-                      {especiales > 0 &&
-                        ` / Especiales $${especiales.toLocaleString('es-AR')}`}
-                      {(retirosEfectivo > 0 || retirosMP > 0) && (
-                        ` / Retiros Ef. $${retirosEfectivo.toLocaleString('es-AR')} / Retiros MP $${retirosMP.toLocaleString('es-AR')}`
-                      )}
-                    </span>
-                    <span className="font-semibold">
-                      Total: ${total.toLocaleString('es-AR')}
+                    <span className="font-semibold text-lg">
+                      ${total.toLocaleString('es-AR')}
                     </span>
                   </summary>
+                  <div className="mt-3 text-sm text-gray-600 border-b pb-2 mb-3">
+                    <p>
+                      {dia.barberos.length} barbero{dia.barberos.length !== 1 ? 's' : ''} •{' '}
+                      {totalCortes > 0 && `${totalCortes} corte${totalCortes !== 1 ? 's' : ''}`}
+                      {totalCortes > 0 && totalCorteYBarba > 0 && ' • '}
+                      {totalCorteYBarba > 0 && `${totalCorteYBarba} corte${totalCorteYBarba !== 1 ? 's' : ''} y barba`}
+                    </p>
+                  </div>
                   <div className="flex gap-4 mt-2">
                     <a
                       href={`/registro-dia?fecha=${encodeURIComponent(dia.fecha)}`}
