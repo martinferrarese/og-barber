@@ -1,4 +1,4 @@
-import type { RegistroCortesDia, Ingresos } from '@/types/registroCortes';
+import type { Ingresos } from '@/types/registroCortes';
 import { readRegistrosDiaKV, upsertRegistroDiaKV } from './registrosDiaFromDB';
 import { readPreciosKV } from './preciosFromDB';
 

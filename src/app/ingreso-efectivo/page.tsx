@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { es } from "date-fns/locale";
@@ -373,6 +373,15 @@ function IngresoEfectivoPageClient() {
 }
 
 export default function IngresoEfectivoPage() {
-  return <IngresoEfectivoPageClient />;
+  return (
+    <Suspense fallback={
+      <div className="p-4 md:p-8 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mb-4"></div>
+        <p className="text-gray-400">Cargando...</p>
+      </div>
+    }>
+      <IngresoEfectivoPageClient />
+    </Suspense>
+  );
 }
 

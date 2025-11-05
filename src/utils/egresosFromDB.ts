@@ -1,4 +1,4 @@
-import type { RegistroCortesDia, Egresos } from '@/types/registroCortes';
+import type { Egresos } from '@/types/registroCortes';
 import { readRegistrosDiaKV, upsertRegistroDiaKV } from './registrosDiaFromDB';
 
 /**

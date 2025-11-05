@@ -194,9 +194,9 @@ describe('/api/egresos', () => {
       });
 
       const response = await POST(request);
-      const data = await response.json();
 
       expect(response.status).toBe(200);
+      await response.json(); // Consumir la respuesta
       expect(writeEgresosKV).toHaveBeenCalledWith('2025-09-16', {
         efectivo: {
           insumos: 0,
