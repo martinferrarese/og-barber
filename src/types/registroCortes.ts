@@ -30,6 +30,10 @@ export interface RegistroCortes {
   servicios: RegistroCorteItem[];
   /** Cortes especiales con montos personalizados (opcional para retrocompatibilidad) */
   cortesEspeciales?: CorteEspecial[];
+  /** Retiros en efectivo (nuevo concepto) */
+  retiroEfectivo?: number;
+  /** Retiros por Mercado Pago (nuevo concepto) */
+  retiroMP?: number;
 }
 
 /** Agrupa los registros de todos los barberos para un mismo día */

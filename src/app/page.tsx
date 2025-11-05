@@ -39,6 +39,12 @@ function HomeClient() {
     <main className="min-h-screen flex flex-col items-center justify-start p-8 text-center gap-8">
       <Image src={logo} alt="OG Barber" priority />
       <a
+        href="/carga-rapida"
+        className="btn btn-primary md:inline-block md:w-auto w-full text-center"
+      >
+        Carga rápida
+      </a>
+      <a
         href="/registro-dia"
         className="btn btn-primary md:inline-block md:w-auto w-full text-center"
       >
