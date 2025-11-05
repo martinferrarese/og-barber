@@ -32,6 +32,10 @@ jest.mock('@/utils/registrosDiaFromDB', () => {
   };
 });
 
+jest.mock('@/utils/preciosFromDB', () => ({
+  readPreciosKV: jest.fn().mockResolvedValue({ corte: 12000, corteYBarba: 13000 }),
+}));
+
 describe('RegistrosDiaPage', () => {
   it('muestra totales correctos para efectivo y MP', async () => {
     render(await RegistrosDiaPage());

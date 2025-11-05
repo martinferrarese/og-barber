@@ -22,8 +22,23 @@ describe("CargaRapidaPage", () => {
     mockSearchParams.delete("fecha");
   });
 
-  it("renderiza la página con título y selector de fecha", async () => {
+  const setupFetchMock = (customMocks?: Record<string, unknown>) => {
     global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
+      if (url === "/api/precios") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ corte: 12000, corteYBarba: 13000 }),
+        });
+      }
+      if (url === "/api/registros-dia") {
+        return Promise.resolve({
+          json: () => Promise.resolve([]),
+        });
+      }
+      if (customMocks && typeof url === 'string' && customMocks[url]) {
+        return Promise.resolve({
+          json: () => Promise.resolve(customMocks[url]),
+        });
+      }
       if (url === "/api/barberos") {
         return Promise.resolve({
           json: () => Promise.resolve(["Joaco", "Lauty"]),
@@ -31,22 +46,25 @@ describe("CargaRapidaPage", () => {
       }
       return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
     }) as unknown as typeof fetch;
+  };
+
+  it("renderiza la página con título y selector de fecha", async () => {
+    setupFetchMock();
 
     render(<CargaRapidaPage />);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Cargando datos/i)).not.toBeInTheDocument();
+    });
 
     expect(screen.getByText(/Carga rápida/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Fecha/i)).toBeInTheDocument();
   });
 
   it("carga y muestra todos los barberos", async () => {
-    global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
-      if (url === "/api/barberos") {
-        return Promise.resolve({
-          json: () => Promise.resolve(["Joaco", "Lauty", "Bruno", "Lucas"]),
-        });
-      }
-      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
-    }) as unknown as typeof fetch;
+    setupFetchMock({
+      "/api/barberos": ["Joaco", "Lauty", "Bruno", "Lucas"],
+    });
 
     render(<CargaRapidaPage />);
 
@@ -59,14 +77,9 @@ describe("CargaRapidaPage", () => {
   });
 
   it("ordena barberos correctamente: Bruno y Lucas al final, Lucas último", async () => {
-    global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
-      if (url === "/api/barberos") {
-        return Promise.resolve({
-          json: () => Promise.resolve(["Bruno", "Lucas", "Joaco", "Lauty"]),
-        });
-      }
-      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
-    }) as unknown as typeof fetch;
+    setupFetchMock({
+      "/api/barberos": ["Bruno", "Lucas", "Joaco", "Lauty"],
+    });
 
     render(<CargaRapidaPage />);
 
@@ -87,14 +100,9 @@ describe("CargaRapidaPage", () => {
   });
 
   it("muestra campos de entrada para cada barbero", async () => {
-    global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
-      if (url === "/api/barberos") {
-        return Promise.resolve({
-          json: () => Promise.resolve(["Joaco"]),
-        });
-      }
-      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
-    }) as unknown as typeof fetch;
+    setupFetchMock({
+      "/api/barberos": ["Joaco"],
+    });
 
     render(<CargaRapidaPage />);
 
@@ -110,14 +118,9 @@ describe("CargaRapidaPage", () => {
   });
 
   it("calcula totales correctamente al ingresar datos", async () => {
-    global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
-      if (url === "/api/barberos") {
-        return Promise.resolve({
-          json: () => Promise.resolve(["Joaco"]),
-        });
-      }
-      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
-    }) as unknown as typeof fetch;
+    setupFetchMock({
+      "/api/barberos": ["Joaco"],
+    });
 
     render(<CargaRapidaPage />);
 
@@ -144,14 +147,9 @@ describe("CargaRapidaPage", () => {
   });
 
   it("muestra retiros separados en los totales", async () => {
-    global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
-      if (url === "/api/barberos") {
-        return Promise.resolve({
-          json: () => Promise.resolve(["Joaco"]),
-        });
-      }
-      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
-    }) as unknown as typeof fetch;
+    setupFetchMock({
+      "/api/barberos": ["Joaco"],
+    });
 
     render(<CargaRapidaPage />);
 
@@ -174,14 +172,9 @@ describe("CargaRapidaPage", () => {
   });
 
   it("muestra campo vacío cuando está enfocado y tiene valor 0", async () => {
-    global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
-      if (url === "/api/barberos") {
-        return Promise.resolve({
-          json: () => Promise.resolve(["Joaco"]),
-        });
-      }
-      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
-    }) as unknown as typeof fetch;
+    setupFetchMock({
+      "/api/barberos": ["Joaco"],
+    });
 
     render(<CargaRapidaPage />);
 
@@ -207,14 +200,9 @@ describe("CargaRapidaPage", () => {
   });
 
   it("permite ingresar valores en los campos", async () => {
-    global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
-      if (url === "/api/barberos") {
-        return Promise.resolve({
-          json: () => Promise.resolve(["Joaco"]),
-        });
-      }
-      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
-    }) as unknown as typeof fetch;
+    setupFetchMock({
+      "/api/barberos": ["Joaco"],
+    });
 
     render(<CargaRapidaPage />);
 
@@ -233,6 +221,16 @@ describe("CargaRapidaPage", () => {
 
   it("guarda datos correctamente al hacer submit", async () => {
     const mockFetch = jest.fn().mockImplementation((url: RequestInfo, options?: RequestInit) => {
+      if (url === "/api/precios") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ corte: 12000, corteYBarba: 13000 }),
+        });
+      }
+      if (url === "/api/registros-dia" && options?.method === "GET") {
+        return Promise.resolve({
+          json: () => Promise.resolve([]),
+        });
+      }
       if (url === "/api/barberos") {
         return Promise.resolve({
           json: () => Promise.resolve(["Joaco"]),
@@ -275,16 +273,36 @@ describe("CargaRapidaPage", () => {
         expect(body.fecha).toBeDefined();
         expect(body.barberos).toHaveLength(1);
         expect(body.barberos[0].barbero).toBe("Joaco");
-        expect(body.barberos[0].servicios).toEqual([
-          { tipo: "corte", efectivo: 2, mercado_pago: 0 },
-          { tipo: "corte_con_barba", efectivo: 0, mercado_pago: 0 },
-        ]);
+        // Verificar que tiene el servicio de corte
+        const servicioCorte = body.barberos[0].servicios.find((s: { tipo: string }) => s.tipo === "corte");
+        expect(servicioCorte).toEqual({ tipo: "corte", efectivo: 2, mercado_pago: 0 });
+        // Verificar que tiene el servicio de corte y barba (siempre se incluye, puede ser 0)
+        const servicioCorteYBarba = body.barberos[0].servicios.find((s: { tipo: string }) => s.tipo === "corte_con_barba");
+        expect(servicioCorteYBarba).toBeDefined();
+        expect(servicioCorteYBarba).toMatchObject({ 
+          tipo: "corte_con_barba", 
+          mercado_pago: 0 
+        });
+        // efectivo debe ser 0 cuando no se ingresó corte y barba
+        expect(servicioCorteYBarba?.efectivo).toBe(0);
+        // Verificar que tiene exactamente 2 servicios
+        expect(body.barberos[0].servicios).toHaveLength(2);
       }
     });
   });
 
   it("redirige a la página principal después de guardar", async () => {
-    const mockFetch = jest.fn().mockImplementation((url: RequestInfo) => {
+    const mockFetch = jest.fn().mockImplementation((url: RequestInfo, options?: RequestInit) => {
+      if (url === "/api/precios") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ corte: 12000, corteYBarba: 13000 }),
+        });
+      }
+      if (url === "/api/registros-dia" && options?.method === "GET") {
+        return Promise.resolve({
+          json: () => Promise.resolve([]),
+        });
+      }
       if (url === "/api/barberos") {
         return Promise.resolve({
           json: () => Promise.resolve(["Joaco"]),
@@ -322,14 +340,9 @@ describe("CargaRapidaPage", () => {
   it("muestra alerta si intenta guardar sin datos", async () => {
     const alertSpy = jest.spyOn(window, "alert").mockImplementation(() => {});
 
-    global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
-      if (url === "/api/barberos") {
-        return Promise.resolve({
-          json: () => Promise.resolve(["Joaco"]),
-        });
-      }
-      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
-    }) as unknown as typeof fetch;
+    setupFetchMock({
+      "/api/barberos": ["Joaco"],
+    });
 
     render(<CargaRapidaPage />);
 
@@ -350,6 +363,16 @@ describe("CargaRapidaPage", () => {
 
   it("filtra barberos sin cortes al guardar", async () => {
     const mockFetch = jest.fn().mockImplementation((url: RequestInfo, options?: RequestInit) => {
+      if (url === "/api/precios") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ corte: 12000, corteYBarba: 13000 }),
+        });
+      }
+      if (url === "/api/registros-dia" && options?.method === "GET") {
+        return Promise.resolve({
+          json: () => Promise.resolve([]),
+        });
+      }
       if (url === "/api/barberos") {
         return Promise.resolve({
           json: () => Promise.resolve(["Joaco", "Lauty"]),
@@ -396,14 +419,9 @@ describe("CargaRapidaPage", () => {
   });
 
   it("permite cambiar la fecha", async () => {
-    global.fetch = jest.fn().mockImplementation((url: RequestInfo) => {
-      if (url === "/api/barberos") {
-        return Promise.resolve({
-          json: () => Promise.resolve(["Joaco"]),
-        });
-      }
-      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
-    }) as unknown as typeof fetch;
+    setupFetchMock({
+      "/api/barberos": ["Joaco"],
+    });
 
     render(<CargaRapidaPage />);
 

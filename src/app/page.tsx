@@ -51,10 +51,10 @@ function HomeClient() {
         Ver registros diarios
       </a>
       <a
-        href="/barberos"
+        href="/configuraciones"
         className="btn btn-primary md:inline-block md:w-auto w-full text-center"
       >
-        Administrar barberos
+        Configuraciones
       </a>
 
       {showToast && diaToast && (

@@ -5,6 +5,10 @@ jest.mock("@/utils/registrosDiaFromDB", () => ({
   readRegistrosDiaKV: jest.fn(),
 }));
 
+jest.mock("@/utils/preciosFromDB", () => ({
+  readPreciosKV: jest.fn().mockResolvedValue({ corte: 12000, corteYBarba: 13000 }),
+}));
+
 import RegistrosDiaPage from "@/app/registros-dia/page";
 import DeleteRegistroDiaButton from "@/components/DeleteRegistroDiaButton";
 import type { RegistroCortesDia } from "@/types/registroCortes";
@@ -37,6 +41,9 @@ describe("Interacciones página registros-dia", () => {
 
   it("muestra enlace de edición con fecha correcta", async () => {
     (readRegistrosDiaKV as jest.Mock).mockResolvedValue(mockData);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { readPreciosKV } = require("@/utils/preciosFromDB");
+    (readPreciosKV as jest.Mock).mockResolvedValue({ corte: 12000, corteYBarba: 13000 });
 
     const element = await RegistrosDiaPage();
     render(element);

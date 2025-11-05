@@ -31,9 +31,7 @@ function CargaRapidaPageClient() {
   const [focusedFields, setFocusedFields] = useState<Set<string>>(new Set());
   const [datosCargados, setDatosCargados] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
-  const PRECIO_CORTE = 12000;
-  const PRECIO_CORTE_Y_BARBA = 13000;
+  const [precios, setPrecios] = useState({ corte: 12000, corteYBarba: 13000 });
   const firstInputRef = useRef<HTMLInputElement>(null);
 
   function ordenarBarberos(barberos: string[]): string[] {
@@ -105,8 +103,15 @@ function CargaRapidaPageClient() {
 
   useEffect(() => {
     setIsLoading(true);
-    // Cargar barberos primero
-    fetch("/api/barberos")
+    // Cargar precios primero
+    fetch("/api/precios")
+      .then((res) => res.json())
+      .then((preciosData: { corte: number; corteYBarba: number }) => {
+        setPrecios(preciosData);
+        
+        // Luego cargar barberos
+        return fetch("/api/barberos");
+      })
       .then((res) => res.json())
       .then((data: string[]) => {
         const barberosOrdenados = ordenarBarberos(data);
@@ -207,13 +212,13 @@ function CargaRapidaPageClient() {
   function calcularTotalCortes(barbero: string): number {
     const data = formData[barbero];
     if (!data) return 0;
-    return data.cortes * PRECIO_CORTE;
+    return data.cortes * precios.corte;
   }
 
   function calcularTotalCorteYBarba(barbero: string): number {
     const data = formData[barbero];
     if (!data) return 0;
-    return data.corteYBarba * PRECIO_CORTE_Y_BARBA;
+    return data.corteYBarba * precios.corteYBarba;
   }
 
   function handleGuardar(e: React.FormEvent) {
@@ -229,8 +234,8 @@ function CargaRapidaPageClient() {
         const data = formData[barbero];
         // Dividir los cortes entre efectivo y MP proporcionalmente o igualmente
         // Por ahora, asumimos que todos son efectivo si no se especifica
-        const totalCortes = data.cortes;
-        const totalCorteYBarba = data.corteYBarba;
+        const totalCortes = data.cortes || 0;
+        const totalCorteYBarba = data.corteYBarba || 0;
 
         return {
           fecha,

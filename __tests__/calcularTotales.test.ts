@@ -1,6 +1,8 @@
 import { calcularTotales } from '@/app/registros-dia/page';
 import type { RegistroCortesDia } from '@/types/registroCortes';
 
+const PRECIOS_DEFAULT = { corte: 12000, corteYBarba: 13000 };
+
 describe('calcularTotales', () => {
   it('suma cortes especiales al total', () => {
     const dia: RegistroCortesDia = {
@@ -15,7 +17,7 @@ describe('calcularTotales', () => {
       ],
     };
 
-    const { efectivo, mp, especiales } = calcularTotales(dia);
+    const { efectivo, mp, especiales } = calcularTotales(dia, PRECIOS_DEFAULT);
 
     expect(efectivo).toBe(24000); // 2 * 12000
     expect(mp).toBe(12000); // 1 * 12000
@@ -35,7 +37,7 @@ describe('calcularTotales', () => {
       ],
     };
 
-    const result = calcularTotales(dia);
+    const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
     expect(result.especiales).toBe(0);
   });
@@ -53,7 +55,7 @@ describe('calcularTotales', () => {
       ],
     };
 
-    const result = calcularTotales(dia);
+    const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
     expect(result.especiales).toBe(0);
   });
@@ -77,7 +79,7 @@ describe('calcularTotales', () => {
       ],
     };
 
-    const result = calcularTotales(dia);
+    const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
     // Efectivo: 3*12000 + 2*12000 = 60000
     expect(result.efectivo).toBe(60000);
@@ -106,7 +108,7 @@ describe('calcularTotales', () => {
       ],
     };
 
-    const result = calcularTotales(dia);
+    const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
     expect(result.efectivo).toBe(24000); // 2 * 12000
     expect(result.mp).toBe(0);
@@ -127,7 +129,7 @@ describe('calcularTotales', () => {
       ],
     };
 
-    const result = calcularTotales(dia);
+    const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
     expect(result.efectivo).toBe(24000); // 2 * 12000
     expect(result.mp).toBe(12000); // 1 * 12000
@@ -156,7 +158,7 @@ describe('calcularTotales', () => {
       ],
     };
 
-    const result = calcularTotales(dia);
+    const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
     expect(result.retirosEfectivo).toBe(8000); // 5000 + 3000
     expect(result.retirosMP).toBe(3000); // 2000 + 1000
@@ -174,7 +176,7 @@ describe('calcularTotales', () => {
       ],
     };
 
-    const result = calcularTotales(dia);
+    const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
     expect(result.retirosEfectivo).toBe(0);
     expect(result.retirosMP).toBe(0);
@@ -195,7 +197,7 @@ describe('calcularTotales', () => {
       ],
     };
 
-    const result = calcularTotales(dia);
+    const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
     // Efectivo: 2*12000 + 1*13000 = 37000
     expect(result.efectivo).toBe(37000);

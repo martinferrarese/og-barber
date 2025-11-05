@@ -1,4 +1,5 @@
 import { readRegistrosDiaKV } from '@/utils/registrosDiaFromDB';
+import { readPreciosKV } from '@/utils/preciosFromDB';
 import type { RegistroCortesDia } from '@/types/registroCortes';
 import DeleteRegistroDiaButton from '@/components/DeleteRegistroDiaButton';
 
@@ -6,8 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export const metadata = { title: 'Registros diarios | OG Barber' };
 
-function calcularTotales(dia: RegistroCortesDia) {
-  const PRECIOS = { corte: 12000, corte_con_barba: 13000 } as const;
+function calcularTotales(dia: RegistroCortesDia, precios: { corte: number; corteYBarba: number }) {
+  const PRECIOS = { corte: precios.corte, corte_con_barba: precios.corteYBarba } as const;
   let efectivo = 0;
   let mp = 0;
   let especiales = 0;
@@ -38,6 +39,7 @@ export { calcularTotales };
 
 export default async function RegistrosDiaPage() {
   const registros = await readRegistrosDiaKV();
+  const precios = await readPreciosKV();
   registros.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
   return (
@@ -49,7 +51,7 @@ export default async function RegistrosDiaPage() {
       ) : (
         <ul className="space-y-4">
           {registros.map((dia, idx) => {
-            const { efectivo, mp, especiales, retirosEfectivo, retirosMP } = calcularTotales(dia);
+            const { efectivo, mp, especiales, retirosEfectivo, retirosMP } = calcularTotales(dia, precios);
             const total = efectivo + mp + especiales - retirosEfectivo - retirosMP;
             // Forzamos la zona horaria a UTC para evitar el desfase de un día
             const fechaFormateada = new Date(dia.fecha).toLocaleDateString(
@@ -100,7 +102,7 @@ export default async function RegistrosDiaPage() {
 
                   <div className="mt-3 pl-4">
                     {dia.barberos.map((b, i) => {
-                      const PRECIOS_BARBERO = { corte: 12000, corte_con_barba: 13000 } as const;
+                      const PRECIOS_BARBERO = { corte: precios.corte, corte_con_barba: precios.corteYBarba } as const;
                       let totalBarbero = 0;
                       b.servicios.forEach((s) => {
                         const precio = PRECIOS_BARBERO[s.tipo];
