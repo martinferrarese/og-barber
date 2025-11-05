@@ -355,7 +355,7 @@ describe("CargaRapidaPage", () => {
     fireEvent.click(guardarButton);
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("Debe ingresar al menos un corte para algún barbero");
+      expect(alertSpy).toHaveBeenCalledWith("Debe ingresar al menos un corte o corte especial para algún barbero");
     });
 
     alertSpy.mockRestore();
