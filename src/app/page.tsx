@@ -51,6 +51,12 @@ function HomeClient() {
         Ingreso efectivo
       </a>
       <a
+        href="/egresos"
+        className="btn btn-primary md:inline-block md:w-auto w-full text-center"
+      >
+        Egresos
+      </a>
+      <a
         href="/registros-dia"
         className="btn btn-primary md:inline-block md:w-auto w-full text-center"
       >

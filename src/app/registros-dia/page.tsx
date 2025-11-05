@@ -51,11 +51,15 @@ export default async function RegistrosDiaPage() {
         <ul className="space-y-4">
           {registros.map((dia, idx) => {
             const { cortes, especiales, retirosEfectivo, retirosMP } = calcularTotales(dia, precios);
-            // Calcular total: cortes + especiales - retiros + ingresos adicionales (sin incluir corteEfectivo porque ya está en cortes)
+            // Calcular total: cortes + especiales - retiros + ingresos adicionales - egresos
             const ingresosAdicionales = dia.ingresos 
               ? dia.ingresos.insumos + dia.ingresos.color + dia.ingresos.bebidas
               : 0;
-            const total = cortes + especiales - retirosEfectivo - retirosMP + ingresosAdicionales;
+            // Calcular total de egresos
+            const totalEgresos = dia.egresos
+              ? dia.egresos.efectivo.insumos + dia.egresos.efectivo.gastos + dia.egresos.mp.insumos + dia.egresos.mp.gastos
+              : 0;
+            const total = cortes + especiales - retirosEfectivo - retirosMP + ingresosAdicionales - totalEgresos;
             // Forzamos la zona horaria a UTC para evitar el desfase de un día
             const fechaFormateada = new Date(dia.fecha).toLocaleDateString(
               'es-AR',
@@ -203,6 +207,56 @@ export default async function RegistrosDiaPage() {
                         <p className="text-sm font-semibold">
                           Total ingresos: ${(dia.ingresos.corteEfectivo + dia.ingresos.insumos + dia.ingresos.color + dia.ingresos.bebidas).toLocaleString('es-AR')}
                         </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sección de Egresos */}
+                  {dia.egresos && (
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold">Egresos</h3>
+                        <a
+                          href={`/egresos?fecha=${encodeURIComponent(dia.fecha)}`}
+                          className="btn btn-secondary text-xs"
+                        >
+                          Editar egresos
+                        </a>
+                      </div>
+                      <div className="ml-4">
+                        <div className="mb-2">
+                          <p className="text-sm font-medium mb-1">Efectivo:</p>
+                          <ul className="text-sm ml-4 list-disc space-y-1">
+                            <li>
+                              Insumos: ${dia.egresos.efectivo.insumos.toLocaleString('es-AR')}
+                            </li>
+                            <li>
+                              Gastos: ${dia.egresos.efectivo.gastos.toLocaleString('es-AR')}
+                            </li>
+                          </ul>
+                          <p className="text-sm font-semibold mt-1 ml-4">
+                            Total efectivo: ${(dia.egresos.efectivo.insumos + dia.egresos.efectivo.gastos).toLocaleString('es-AR')}
+                          </p>
+                        </div>
+                        <div className="mb-2">
+                          <p className="text-sm font-medium mb-1">MP:</p>
+                          <ul className="text-sm ml-4 list-disc space-y-1">
+                            <li>
+                              Insumos: ${dia.egresos.mp.insumos.toLocaleString('es-AR')}
+                            </li>
+                            <li>
+                              Gastos: ${dia.egresos.mp.gastos.toLocaleString('es-AR')}
+                            </li>
+                          </ul>
+                          <p className="text-sm font-semibold mt-1 ml-4">
+                            Total MP: ${(dia.egresos.mp.insumos + dia.egresos.mp.gastos).toLocaleString('es-AR')}
+                          </p>
+                        </div>
+                        <div className="mt-2">
+                          <p className="text-sm font-semibold">
+                            Total egresos: ${(dia.egresos.efectivo.insumos + dia.egresos.efectivo.gastos + dia.egresos.mp.insumos + dia.egresos.mp.gastos).toLocaleString('es-AR')}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}

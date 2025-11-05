@@ -48,6 +48,24 @@ export interface Ingresos {
   bebidas: number;
 }
 
+/** Egresos del día */
+export interface Egresos {
+  /** Egresos en efectivo */
+  efectivo: {
+    /** Insumos */
+    insumos: number;
+    /** Gastos */
+    gastos: number;
+  };
+  /** Egresos por Mercado Pago */
+  mp: {
+    /** Insumos */
+    insumos: number;
+    /** Gastos */
+    gastos: number;
+  };
+}
+
 /** Agrupa los registros de todos los barberos para un mismo día */
 export interface RegistroCortesDia {
   /** Fecha en formato YYYY-MM-DD */
@@ -56,4 +74,6 @@ export interface RegistroCortesDia {
   barberos: RegistroCortes[];
   /** Ingresos adicionales del día (opcional) */
   ingresos?: Ingresos;
+  /** Egresos del día (opcional) */
+  egresos?: Egresos;
 }
