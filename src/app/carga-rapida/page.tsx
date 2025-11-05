@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { es } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
-import type { RegistroCortes, RegistroCortesDia } from "@/types/registroCortes";
+import type { RegistroCortes, RegistroCortesDia, CorteEspecial } from "@/types/registroCortes";
 
 registerLocale("es", es);
 
@@ -14,6 +14,7 @@ interface BarberoFormData {
   corteYBarba: number;
   retiroEfectivo: number;
   retiroMP: number;
+  cortesEspeciales: CorteEspecial[];
 }
 
 function CargaRapidaPageClient() {
@@ -29,6 +30,7 @@ function CargaRapidaPageClient() {
   const [barberos, setBarberos] = useState<string[]>([]);
   const [formData, setFormData] = useState<Record<string, BarberoFormData>>({});
   const [focusedFields, setFocusedFields] = useState<Set<string>>(new Set());
+  const [nuevoCorteEspecial, setNuevoCorteEspecial] = useState<Record<string, number>>({});
   const [datosCargados, setDatosCargados] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [precios, setPrecios] = useState({ corte: 12000, corteYBarba: 13000 });
@@ -68,6 +70,7 @@ function CargaRapidaPageClient() {
                 corteYBarba: (servicioCorteYBarba?.efectivo || 0) + (servicioCorteYBarba?.mercado_pago || 0),
                 retiroEfectivo: registroBarbero.retiroEfectivo || 0,
                 retiroMP: registroBarbero.retiroMP || 0,
+                cortesEspeciales: registroBarbero.cortesEspeciales || [],
               };
             } else {
               initialData[barbero] = {
@@ -75,10 +78,17 @@ function CargaRapidaPageClient() {
                 corteYBarba: 0,
                 retiroEfectivo: 0,
                 retiroMP: 0,
+                cortesEspeciales: [],
               };
             }
           });
           setFormData(initialData);
+          // Inicializar estado de nuevos cortes especiales para cada barbero
+          const nuevoEspecialInit: Record<string, number> = {};
+          barberosList.forEach((barbero) => {
+            nuevoEspecialInit[barbero] = 0;
+          });
+          setNuevoCorteEspecial(nuevoEspecialInit);
         } else {
           // Inicializar vacío si no hay datos
           const initialData: Record<string, BarberoFormData> = {};
@@ -88,10 +98,17 @@ function CargaRapidaPageClient() {
               corteYBarba: 0,
               retiroEfectivo: 0,
               retiroMP: 0,
+              cortesEspeciales: [],
             };
           });
           setFormData(initialData);
         }
+        // Inicializar estado de nuevos cortes especiales para cada barbero
+        const nuevoEspecialInit: Record<string, number> = {};
+        barberosList.forEach((barbero) => {
+          nuevoEspecialInit[barbero] = 0;
+        });
+        setNuevoCorteEspecial(nuevoEspecialInit);
         setDatosCargados(true);
         setIsLoading(false);
       })
@@ -221,6 +238,44 @@ function CargaRapidaPageClient() {
     return data.corteYBarba * precios.corteYBarba;
   }
 
+  function calcularTotalCortesEspeciales(barbero: string): number {
+    const data = formData[barbero];
+    if (!data || !data.cortesEspeciales) return 0;
+    return data.cortesEspeciales.reduce((acc, c) => acc + c.monto, 0);
+  }
+
+  function handleAgregarCorteEspecial(barbero: string) {
+    const monto = nuevoCorteEspecial[barbero];
+    if (monto && monto > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        [barbero]: {
+          ...prev[barbero],
+          cortesEspeciales: [
+            ...(prev[barbero]?.cortesEspeciales || []),
+            {
+              monto: monto,
+            },
+          ],
+        },
+      }));
+      setNuevoCorteEspecial((prev) => ({
+        ...prev,
+        [barbero]: 0,
+      }));
+    }
+  }
+
+  function handleEliminarCorteEspecial(barbero: string, index: number) {
+    setFormData((prev) => ({
+      ...prev,
+      [barbero]: {
+        ...prev[barbero],
+        cortesEspeciales: prev[barbero].cortesEspeciales.filter((_, i) => i !== index),
+      },
+    }));
+  }
+
   function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
 
@@ -228,7 +283,12 @@ function CargaRapidaPageClient() {
     const registros: RegistroCortes[] = barberos
       .filter((barbero) => {
         const data = formData[barbero];
-        return data && (data.cortes > 0 || data.corteYBarba > 0);
+        return (
+          data &&
+          (data.cortes > 0 ||
+            data.corteYBarba > 0 ||
+            (data.cortesEspeciales && data.cortesEspeciales.length > 0))
+        );
       })
       .map((barbero) => {
         const data = formData[barbero];
@@ -252,13 +312,17 @@ function CargaRapidaPageClient() {
               mercado_pago: 0,
             },
           ],
+          cortesEspeciales:
+            data.cortesEspeciales && data.cortesEspeciales.length > 0
+              ? data.cortesEspeciales
+              : undefined,
           retiroEfectivo: data.retiroEfectivo > 0 ? data.retiroEfectivo : undefined,
           retiroMP: data.retiroMP > 0 ? data.retiroMP : undefined,
         };
       });
 
     if (registros.length === 0) {
-      alert("Debe ingresar al menos un corte para algún barbero");
+      alert("Debe ingresar al menos un corte o corte especial para algún barbero");
       return;
     }
 
@@ -321,10 +385,13 @@ function CargaRapidaPageClient() {
             corteYBarba: 0,
             retiroEfectivo: 0,
             retiroMP: 0,
+            cortesEspeciales: [],
           };
           const totalCortes = calcularTotalCortes(barbero);
           const totalCorteYBarba = calcularTotalCorteYBarba(barbero);
+          const totalEspeciales = calcularTotalCortesEspeciales(barbero);
           const isFirstInput = index === 0;
+          const nuevoEspecialMonto = nuevoCorteEspecial[barbero] || 0;
 
           return (
             <div key={barbero} className="border rounded p-4 flex flex-col gap-4">
@@ -385,10 +452,62 @@ function CargaRapidaPageClient() {
                 />
               </div>
 
+              <div className="flex flex-col gap-2">
+                <label className="font-medium">Cortes especiales:</label>
+                {data.cortesEspeciales && data.cortesEspeciales.length > 0 && (
+                  <div className="space-y-2 mb-2">
+                    {data.cortesEspeciales.map((corte, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-2 bg-gray-800 rounded border"
+                      >
+                        <span className="font-medium">
+                          ${corte.monto.toLocaleString("es-AR")}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleEliminarCorteEspecial(barbero, idx)}
+                          className="text-red-400 hover:text-red-300 text-sm px-2 py-1"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    placeholder="Monto"
+                    value={nuevoEspecialMonto === 0 ? "" : nuevoEspecialMonto || ""}
+                    onChange={(e) =>
+                      setNuevoCorteEspecial((prev) => ({
+                        ...prev,
+                        [barbero]: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    className="border rounded px-3 py-2 flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAgregarCorteEspecial(barbero)}
+                    className="btn btn-secondary text-xs whitespace-nowrap"
+                    disabled={!nuevoEspecialMonto || nuevoEspecialMonto <= 0}
+                  >
+                    Agregar
+                  </button>
+                </div>
+              </div>
+
               <div className="mt-2 pt-2 border-t">
                 <div className="text-xs text-gray-600 space-y-1">
                   <p>Total cortes: ${totalCortes.toLocaleString()}</p>
                   <p>Total corte y barba: ${totalCorteYBarba.toLocaleString()}</p>
+                  {totalEspeciales > 0 && (
+                    <p>Total cortes especiales: ${totalEspeciales.toLocaleString()}</p>
+                  )}
                   <p>Retiros Efectivo: ${(data.retiroEfectivo || 0).toLocaleString()}</p>
                   <p>Retiros MP: ${(data.retiroMP || 0).toLocaleString()}</p>
                 </div>

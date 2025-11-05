@@ -146,12 +146,19 @@ function IngresoEfectivoPageClient() {
         bebidas: ingresos.bebidas,
       }),
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || "Error al guardar los ingresos");
+        }
+        return res.json();
+      })
       .then(() => {
         router.push(`/?diaCargada=${encodeURIComponent(fecha)}`);
       })
       .catch((error) => {
-        console.error(error);
+        console.error("Error al guardar ingresos:", error);
+        alert(error.message || "Error al guardar los ingresos. Por favor, intenta nuevamente.");
         setSaving(false);
       });
   }

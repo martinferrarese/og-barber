@@ -4,7 +4,7 @@ import { readPreciosKV } from './preciosFromDB';
 
 /**
  * Calcula el corte efectivo sumando todos los cortes (cantidad × precio)
- * sin diferenciar entre MP y efectivo
+ * sin diferenciar entre MP y efectivo. Incluye también los cortes especiales.
  */
 export async function calcularCorteEfectivo(fecha: string): Promise<number> {
   const registros = await readRegistrosDiaKV();
@@ -26,6 +26,10 @@ export async function calcularCorteEfectivo(fecha: string): Promise<number> {
         total += cantidadTotal * precios.corteYBarba;
       }
     });
+    // Sumar cortes especiales
+    if (barbero.cortesEspeciales) {
+      total += barbero.cortesEspeciales.reduce((acc, c) => acc + c.monto, 0);
+    }
   });
 
   return total;
@@ -42,8 +46,10 @@ export async function readIngresosKV(fecha: string): Promise<Ingresos | null> {
 
 /**
  * Guarda o actualiza los ingresos de una fecha específica
+ * Asegura que se preserven los datos existentes de barberos
  */
 export async function writeIngresosKV(fecha: string, ingresos: Ingresos): Promise<void> {
+  // Leer siempre la versión más reciente para evitar condiciones de carrera
   const registros = await readRegistrosDiaKV();
   let registroDia = registros.find((r) => r.fecha === fecha);
 
@@ -55,8 +61,11 @@ export async function writeIngresosKV(fecha: string, ingresos: Ingresos): Promis
       ingresos,
     };
   } else {
-    // Actualizar los ingresos en el registro existente
-    registroDia.ingresos = ingresos;
+    // Actualizar los ingresos en el registro existente preservando los barberos
+    registroDia = {
+      ...registroDia,
+      ingresos,
+    };
   }
 
   await upsertRegistroDiaKV(registroDia);
