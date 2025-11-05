@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { RegistroCortes, RegistroCortesDia } from "@/types/registroCortes";
 
 interface BarberoFormData {
@@ -11,13 +11,16 @@ interface BarberoFormData {
   retiroMP: number;
 }
 
-export default function CargaRapidaPage() {
+function CargaRapidaPageClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fechaParam = searchParams.get("fecha");
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const [fecha, setFecha] = useState<string>(today);
+  const [fecha, setFecha] = useState<string>(fechaParam || today);
   const [barberos, setBarberos] = useState<string[]>([]);
   const [formData, setFormData] = useState<Record<string, BarberoFormData>>({});
   const [focusedFields, setFocusedFields] = useState<Set<string>>(new Set());
+  const [datosCargados, setDatosCargados] = useState(false);
 
   const PRECIO_CORTE = 12000;
   const PRECIO_CORTE_Y_BARBA = 13000;
@@ -36,32 +39,86 @@ export default function CargaRapidaPage() {
   }
 
   useEffect(() => {
+    // Cargar barberos primero
     fetch("/api/barberos")
       .then((res) => res.json())
       .then((data: string[]) => {
         const barberosOrdenados = ordenarBarberos(data);
         setBarberos(barberosOrdenados);
-        // Inicializar formData para cada barbero
-        const initialData: Record<string, BarberoFormData> = {};
-        barberosOrdenados.forEach((barbero) => {
-          initialData[barbero] = {
-            cortes: 0,
-            corteYBarba: 0,
-            retiroEfectivo: 0,
-            retiroMP: 0,
-          };
-        });
-        setFormData(initialData);
+        
+        // Si hay fecha en la URL, cargar datos existentes
+        if (fechaParam) {
+          fetch("/api/registros-dia")
+            .then((res) => res.json())
+            .then((registros: RegistroCortesDia[]) => {
+              const registroExistente = registros.find((r) => r.fecha === fechaParam);
+              
+              if (registroExistente) {
+                // Prellenar formulario con datos existentes
+                const initialData: Record<string, BarberoFormData> = {};
+                barberosOrdenados.forEach((barbero) => {
+                  const registroBarbero = registroExistente.barberos.find((b) => b.barbero === barbero);
+                  
+                  if (registroBarbero) {
+                    const servicioCorte = registroBarbero.servicios.find((s) => s.tipo === "corte");
+                    const servicioCorteYBarba = registroBarbero.servicios.find((s) => s.tipo === "corte_con_barba");
+                    
+                    initialData[barbero] = {
+                      cortes: (servicioCorte?.efectivo || 0) + (servicioCorte?.mercado_pago || 0),
+                      corteYBarba: (servicioCorteYBarba?.efectivo || 0) + (servicioCorteYBarba?.mercado_pago || 0),
+                      retiroEfectivo: registroBarbero.retiroEfectivo || 0,
+                      retiroMP: registroBarbero.retiroMP || 0,
+                    };
+                  } else {
+                    initialData[barbero] = {
+                      cortes: 0,
+                      corteYBarba: 0,
+                      retiroEfectivo: 0,
+                      retiroMP: 0,
+                    };
+                  }
+                });
+                setFormData(initialData);
+              } else {
+                // Inicializar vacío si no hay datos
+                const initialData: Record<string, BarberoFormData> = {};
+                barberosOrdenados.forEach((barbero) => {
+                  initialData[barbero] = {
+                    cortes: 0,
+                    corteYBarba: 0,
+                    retiroEfectivo: 0,
+                    retiroMP: 0,
+                  };
+                });
+                setFormData(initialData);
+              }
+              setDatosCargados(true);
+            })
+            .catch(console.error);
+        } else {
+          // Inicializar formData vacío si no hay fecha
+          const initialData: Record<string, BarberoFormData> = {};
+          barberosOrdenados.forEach((barbero) => {
+            initialData[barbero] = {
+              cortes: 0,
+              corteYBarba: 0,
+              retiroEfectivo: 0,
+              retiroMP: 0,
+            };
+          });
+          setFormData(initialData);
+          setDatosCargados(true);
+        }
       })
       .catch(console.error);
-  }, []);
+  }, [fechaParam]);
 
   useEffect(() => {
-    // Enfocar el primer input cuando los barberos estén cargados
-    if (barberos.length > 0 && firstInputRef.current) {
+    // Enfocar el primer input cuando los barberos estén cargados y los datos estén listos
+    if (barberos.length > 0 && datosCargados && firstInputRef.current) {
       firstInputRef.current.focus();
     }
-  }, [barberos]);
+  }, [barberos, datosCargados]);
 
   function handleChange(
     barbero: string,
@@ -223,7 +280,8 @@ export default function CargaRapidaPage() {
           id="fecha"
           value={fecha}
           onChange={(e) => setFecha(e.target.value)}
-          className="border rounded px-3 py-2"
+          disabled={!!fechaParam}
+          className={`border rounded px-3 py-2 ${fechaParam ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-not-allowed' : ''}`}
         />
       </div>
 
@@ -315,5 +373,13 @@ export default function CargaRapidaPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function CargaRapidaPage() {
+  return (
+    <Suspense fallback={<div className="p-4 md:p-8 max-w-2xl mx-auto">Cargando...</div>}>
+      <CargaRapidaPageClient />
+    </Suspense>
   );
 }

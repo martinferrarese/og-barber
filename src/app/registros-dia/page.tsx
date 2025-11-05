@@ -90,7 +90,7 @@ export default async function RegistrosDiaPage() {
                   </div>
                   <div className="flex gap-4 mt-2">
                     <a
-                      href={`/registro-dia?fecha=${encodeURIComponent(dia.fecha)}`}
+                      href={`/carga-rapida?fecha=${encodeURIComponent(dia.fecha)}`}
                       className="btn btn-secondary text-xs"
                     >
                       Editar día
