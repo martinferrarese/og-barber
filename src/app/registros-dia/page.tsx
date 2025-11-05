@@ -7,10 +7,12 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Registros diarios | OG Barber' };
 
 function calcularTotales(dia: RegistroCortesDia) {
-  const PRECIOS = { corte: 11000, corte_con_barba: 12000 } as const;
+  const PRECIOS = { corte: 12000, corte_con_barba: 13000 } as const;
   let efectivo = 0;
   let mp = 0;
   let especiales = 0;
+  let retirosEfectivo = 0;
+  let retirosMP = 0;
   dia.barberos.forEach((b) => {
     b.servicios.forEach((s) => {
       const precio = PRECIOS[s.tipo];
@@ -21,8 +23,15 @@ function calcularTotales(dia: RegistroCortesDia) {
     if (b.cortesEspeciales) {
       especiales += b.cortesEspeciales.reduce((acc, c) => acc + c.monto, 0);
     }
+    // Sumar retiros
+    if (b.retiroEfectivo) {
+      retirosEfectivo += b.retiroEfectivo;
+    }
+    if (b.retiroMP) {
+      retirosMP += b.retiroMP;
+    }
   });
-  return { efectivo, mp, especiales };
+  return { efectivo, mp, especiales, retirosEfectivo, retirosMP };
 }
 
 export { calcularTotales };
@@ -40,8 +49,8 @@ export default async function RegistrosDiaPage() {
       ) : (
         <ul className="space-y-4">
           {registros.map((dia, idx) => {
-            const { efectivo, mp, especiales } = calcularTotales(dia);
-            const total = efectivo + mp + especiales;
+            const { efectivo, mp, especiales, retirosEfectivo, retirosMP } = calcularTotales(dia);
+            const total = efectivo + mp + especiales - retirosEfectivo - retirosMP;
             // Forzamos la zona horaria a UTC para evitar el desfase de un día
             const fechaFormateada = new Date(dia.fecha).toLocaleDateString(
               'es-AR',
@@ -59,6 +68,9 @@ export default async function RegistrosDiaPage() {
                       {mp.toLocaleString('es-AR')}
                       {especiales > 0 &&
                         ` / Especiales $${especiales.toLocaleString('es-AR')}`}
+                      {(retirosEfectivo > 0 || retirosMP > 0) && (
+                        ` / Retiros Ef. $${retirosEfectivo.toLocaleString('es-AR')} / Retiros MP $${retirosMP.toLocaleString('es-AR')}`
+                      )}
                     </span>
                     <span className="font-semibold">
                       Total: ${total.toLocaleString('es-AR')}
@@ -75,34 +87,70 @@ export default async function RegistrosDiaPage() {
                   </div>
 
                   <div className="mt-3 pl-4">
-                    {dia.barberos.map((b, i) => (
-                      <div key={i} className="mb-3">
-                        <h3 className="font-semibold">{b.barbero}</h3>
-                        <ul className="text-sm ml-4 list-disc">
-                          {b.servicios.map((s, j) => (
-                            <li key={j}>
-                              {s.tipo.replace('_', ' ')} — Ef: {s.efectivo}, MP:{' '}
-                              {s.mercado_pago}
-                            </li>
-                          ))}
-                        </ul>
-                        {b.cortesEspeciales &&
-                          b.cortesEspeciales.length > 0 && (
+                    {dia.barberos.map((b, i) => {
+                      const PRECIOS_BARBERO = { corte: 12000, corte_con_barba: 13000 } as const;
+                      let totalBarbero = 0;
+                      b.servicios.forEach((s) => {
+                        const precio = PRECIOS_BARBERO[s.tipo];
+                        totalBarbero += (s.efectivo + s.mercado_pago) * precio;
+                      });
+                      if (b.cortesEspeciales) {
+                        totalBarbero += b.cortesEspeciales.reduce((acc, c) => acc + c.monto, 0);
+                      }
+                      if (b.retiroEfectivo) totalBarbero -= b.retiroEfectivo;
+                      if (b.retiroMP) totalBarbero -= b.retiroMP;
+
+                      return (
+                        <div key={i} className="mb-3 pb-3 border-b last:border-b-0">
+                          <h3 className="font-semibold">{b.barbero}</h3>
+                          <ul className="text-sm ml-4 list-disc">
+                            {b.servicios.map((s, j) => {
+                              const precio = PRECIOS_BARBERO[s.tipo];
+                              const cantidadTotal = s.efectivo + s.mercado_pago;
+                              const totalServicio = cantidadTotal * precio;
+                              return (
+                                <li key={j}>
+                                  {s.tipo.replace('_', ' ')}: {cantidadTotal} — Total: ${totalServicio.toLocaleString('es-AR')}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                          {b.cortesEspeciales &&
+                            b.cortesEspeciales.length > 0 && (
+                              <div className="mt-2 ml-4">
+                                <p className="text-sm font-medium">
+                                  Cortes especiales:
+                                </p>
+                                <ul className="text-sm ml-4 list-disc">
+                                  {b.cortesEspeciales.map((c, j) => (
+                                    <li key={j}>
+                                      ${c.monto.toLocaleString('es-AR')}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          {(b.retiroEfectivo || b.retiroMP) && (
                             <div className="mt-2 ml-4">
-                              <p className="text-sm font-medium">
-                                Cortes especiales:
-                              </p>
+                              <p className="text-sm font-medium">Retiros:</p>
                               <ul className="text-sm ml-4 list-disc">
-                                {b.cortesEspeciales.map((c, j) => (
-                                  <li key={j}>
-                                    ${c.monto.toLocaleString('es-AR')}
-                                  </li>
-                                ))}
+                                {b.retiroEfectivo && (
+                                  <li>Efectivo: ${b.retiroEfectivo.toLocaleString('es-AR')}</li>
+                                )}
+                                {b.retiroMP && (
+                                  <li>MP: ${b.retiroMP.toLocaleString('es-AR')}</li>
+                                )}
                               </ul>
                             </div>
                           )}
-                      </div>
-                    ))}
+                          <div className="mt-2 ml-4">
+                            <p className="text-sm font-semibold">
+                              Total barbero: ${totalBarbero.toLocaleString('es-AR')}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </details>
               </li>
