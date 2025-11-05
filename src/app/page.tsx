@@ -37,7 +37,9 @@ function HomeClient() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-start p-8 text-center gap-8">
-      <Image src={logo} alt="OG Barber" priority />
+      <div className="w-1/2 max-w-xs">
+        <Image src={logo} alt="OG Barber" priority className="w-full h-auto" />
+      </div>
       <a
         href="/carga-rapida"
         className="btn btn-primary md:inline-block md:w-auto w-full text-center"
