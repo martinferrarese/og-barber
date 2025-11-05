@@ -9,16 +9,15 @@ export const metadata = { title: 'Registros diarios | OG Barber' };
 
 function calcularTotales(dia: RegistroCortesDia, precios: { corte: number; corteYBarba: number }) {
   const PRECIOS = { corte: precios.corte, corte_con_barba: precios.corteYBarba } as const;
-  let efectivo = 0;
-  let mp = 0;
+  let cortes = 0; // Suma de todos los cortes sin diferenciar MP/efectivo
   let especiales = 0;
   let retirosEfectivo = 0;
   let retirosMP = 0;
   dia.barberos.forEach((b) => {
     b.servicios.forEach((s) => {
       const precio = PRECIOS[s.tipo];
-      efectivo += s.efectivo * precio;
-      mp += s.mercado_pago * precio;
+      const cantidadTotal = s.efectivo + s.mercado_pago;
+      cortes += cantidadTotal * precio;
     });
     // Sumar cortes especiales
     if (b.cortesEspeciales) {
@@ -32,7 +31,7 @@ function calcularTotales(dia: RegistroCortesDia, precios: { corte: number; corte
       retirosMP += b.retiroMP;
     }
   });
-  return { efectivo, mp, especiales, retirosEfectivo, retirosMP };
+  return { cortes, especiales, retirosEfectivo, retirosMP };
 }
 
 export { calcularTotales };
@@ -51,8 +50,12 @@ export default async function RegistrosDiaPage() {
       ) : (
         <ul className="space-y-4">
           {registros.map((dia, idx) => {
-            const { efectivo, mp, especiales, retirosEfectivo, retirosMP } = calcularTotales(dia, precios);
-            const total = efectivo + mp + especiales - retirosEfectivo - retirosMP;
+            const { cortes, especiales, retirosEfectivo, retirosMP } = calcularTotales(dia, precios);
+            // Calcular total: cortes + especiales - retiros + ingresos adicionales (sin incluir corteEfectivo porque ya está en cortes)
+            const ingresosAdicionales = dia.ingresos 
+              ? dia.ingresos.insumos + dia.ingresos.color + dia.ingresos.bebidas
+              : 0;
+            const total = cortes + especiales - retirosEfectivo - retirosMP + ingresosAdicionales;
             // Forzamos la zona horaria a UTC para evitar el desfase de un día
             const fechaFormateada = new Date(dia.fecha).toLocaleDateString(
               'es-AR',
@@ -90,14 +93,17 @@ export default async function RegistrosDiaPage() {
                       {totalCorteYBarba > 0 && `${totalCorteYBarba} corte${totalCorteYBarba !== 1 ? 's' : ''} y barba`}
                     </p>
                   </div>
-                  <div className="flex gap-4 mt-2">
-                    <a
-                      href={`/carga-rapida?fecha=${encodeURIComponent(dia.fecha)}`}
-                      className="btn btn-secondary text-xs"
-                    >
-                      Editar día
-                    </a>
-                    <DeleteRegistroDiaButton fecha={dia.fecha} />
+                  <div className="flex justify-between items-center mt-2">
+                    <h3 className="font-semibold">Cortes y retiros</h3>
+                    <div className="flex gap-4">
+                      <a
+                        href={`/carga-rapida?fecha=${encodeURIComponent(dia.fecha)}`}
+                        className="btn btn-secondary text-xs"
+                      >
+                        Editar día
+                      </a>
+                      <DeleteRegistroDiaButton fecha={dia.fecha} />
+                    </div>
                   </div>
 
                   <div className="mt-3 pl-4">
@@ -166,6 +172,40 @@ export default async function RegistrosDiaPage() {
                       );
                     })}
                   </div>
+
+                  {/* Sección de Ingresos */}
+                  {dia.ingresos && (
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold">Ingresos</h3>
+                        <a
+                          href={`/ingreso-efectivo?fecha=${encodeURIComponent(dia.fecha)}`}
+                          className="btn btn-secondary text-xs"
+                        >
+                          Editar ingresos
+                        </a>
+                      </div>
+                      <ul className="text-sm ml-4 list-disc space-y-1">
+                        <li>
+                          Corte efectivo: ${dia.ingresos.corteEfectivo.toLocaleString('es-AR')}
+                        </li>
+                        <li>
+                          Insumos: ${dia.ingresos.insumos.toLocaleString('es-AR')}
+                        </li>
+                        <li>
+                          Color: ${dia.ingresos.color.toLocaleString('es-AR')}
+                        </li>
+                        <li>
+                          Bebidas: ${dia.ingresos.bebidas.toLocaleString('es-AR')}
+                        </li>
+                      </ul>
+                      <div className="mt-2 ml-4">
+                        <p className="text-sm font-semibold">
+                          Total ingresos: ${(dia.ingresos.corteEfectivo + dia.ingresos.insumos + dia.ingresos.color + dia.ingresos.bebidas).toLocaleString('es-AR')}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </details>
               </li>
             );

@@ -17,10 +17,9 @@ describe('calcularTotales', () => {
       ],
     };
 
-    const { efectivo, mp, especiales } = calcularTotales(dia, PRECIOS_DEFAULT);
+    const { cortes, especiales } = calcularTotales(dia, PRECIOS_DEFAULT);
 
-    expect(efectivo).toBe(24000); // 2 * 12000
-    expect(mp).toBe(12000); // 1 * 12000
+    expect(cortes).toBe(36000); // (2 + 1) * 12000 = 36000
     expect(especiales).toBe(8000); // 5000 + 3000
   });
 
@@ -81,10 +80,8 @@ describe('calcularTotales', () => {
 
     const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
-    // Efectivo: 3*12000 + 2*12000 = 60000
-    expect(result.efectivo).toBe(60000);
-    // MP: 0 + 1*12000 = 12000
-    expect(result.mp).toBe(12000);
+    // Cortes: (3+0)*12000 + (2+1)*12000 = 36000 + 36000 = 72000
+    expect(result.cortes).toBe(72000);
     // Especiales: 5000 + 8000 + 2000 = 15000
     expect(result.especiales).toBe(15000);
   });
@@ -110,8 +107,7 @@ describe('calcularTotales', () => {
 
     const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
-    expect(result.efectivo).toBe(24000); // 2 * 12000
-    expect(result.mp).toBe(0);
+    expect(result.cortes).toBe(24000); // (1+0 + 1+0) * 12000 = 24000
     expect(result.especiales).toBe(5000); // solo del primero
   });
 
@@ -131,8 +127,7 @@ describe('calcularTotales', () => {
 
     const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
-    expect(result.efectivo).toBe(24000); // 2 * 12000
-    expect(result.mp).toBe(12000); // 1 * 12000
+    expect(result.cortes).toBe(36000); // (2 + 1) * 12000 = 36000
     expect(result.retirosEfectivo).toBe(5000);
     expect(result.retirosMP).toBe(3000);
   });
@@ -199,9 +194,7 @@ describe('calcularTotales', () => {
 
     const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
-    // Efectivo: 2*12000 + 1*13000 = 37000
-    expect(result.efectivo).toBe(37000);
-    // MP: 1*12000 + 2*13000 = 38000
-    expect(result.mp).toBe(38000);
+    // Cortes: (2+1)*12000 + (1+2)*13000 = 36000 + 39000 = 75000
+    expect(result.cortes).toBe(75000);
   });
 });

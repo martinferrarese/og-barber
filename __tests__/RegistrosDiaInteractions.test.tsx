@@ -54,6 +54,79 @@ describe("Interacciones página registros-dia", () => {
     });
   });
 
+  it("muestra enlace de edición de ingresos con fecha correcta", async () => {
+    const mockDataConIngresos: RegistroCortesDia[] = [
+      {
+        fecha: "2025-09-17",
+        barberos: [
+          {
+            fecha: "2025-09-17",
+            barbero: "Joaco",
+            servicios: [{ tipo: "corte", efectivo: 1, mercado_pago: 0 }],
+          },
+        ],
+        ingresos: {
+          corteEfectivo: 12000,
+          insumos: 5000,
+          color: 3000,
+          bebidas: 2000,
+        },
+      },
+    ];
+    (readRegistrosDiaKV as jest.Mock).mockResolvedValue(mockDataConIngresos);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { readPreciosKV } = require("@/utils/preciosFromDB");
+    (readPreciosKV as jest.Mock).mockResolvedValue({ corte: 12000, corteYBarba: 13000 });
+
+    const element = await RegistrosDiaPage();
+    render(element);
+
+    await waitFor(() => {
+      const editIngresosLink = screen.getByRole("link", { name: /Editar ingresos/i });
+      expect(editIngresosLink).toHaveAttribute("href", "/ingreso-efectivo?fecha=2025-09-17");
+    });
+  });
+
+  it("muestra ingresos cuando existen", async () => {
+    const mockDataConIngresos: RegistroCortesDia[] = [
+      {
+        fecha: "2025-09-17",
+        barberos: [
+          {
+            fecha: "2025-09-17",
+            barbero: "Joaco",
+            servicios: [{ tipo: "corte", efectivo: 1, mercado_pago: 0 }],
+          },
+        ],
+        ingresos: {
+          corteEfectivo: 12000,
+          insumos: 5000,
+          color: 3000,
+          bebidas: 2000,
+        },
+      },
+    ];
+    (readRegistrosDiaKV as jest.Mock).mockResolvedValue(mockDataConIngresos);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { readPreciosKV } = require("@/utils/preciosFromDB");
+    (readPreciosKV as jest.Mock).mockResolvedValue({ corte: 12000, corteYBarba: 13000 });
+
+    const element = await RegistrosDiaPage();
+    const { container } = render(element);
+
+    // Los ingresos están dentro de un details. Verificar que el contenido está en el DOM
+    // (aunque el details esté cerrado, el contenido está presente)
+    await waitFor(() => {
+      // Buscar directamente en el texto del contenedor
+      const textoCompleto = container.textContent || "";
+      expect(textoCompleto).toMatch(/Ingresos/i);
+      expect(textoCompleto).toMatch(/Corte efectivo:/i);
+      expect(textoCompleto).toMatch(/Insumos:/i);
+      expect(textoCompleto).toMatch(/Color:/i);
+      expect(textoCompleto).toMatch(/Bebidas:/i);
+    });
+  });
+
   it("llama al endpoint DELETE al hacer clic en Eliminar", async () => {
     global.fetch = jest.fn().mockResolvedValue({
       json: () => Promise.resolve(mockData),

@@ -45,6 +45,12 @@ function HomeClient() {
         Carga rápida
       </a>
       <a
+        href="/ingreso-efectivo"
+        className="btn btn-primary md:inline-block md:w-auto w-full text-center"
+      >
+        Ingreso efectivo
+      </a>
+      <a
         href="/registros-dia"
         className="btn btn-primary md:inline-block md:w-auto w-full text-center"
       >

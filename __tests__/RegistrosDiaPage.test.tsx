@@ -37,15 +37,14 @@ jest.mock('@/utils/preciosFromDB', () => ({
 }));
 
 describe('RegistrosDiaPage', () => {
-  it('muestra totales correctos para efectivo y MP', async () => {
+  it('muestra totales correctos sin diferenciar MP/efectivo', async () => {
     render(await RegistrosDiaPage());
 
-    // Totales esperados con nuevos precios
-    // Joaco: 5 cortes ef * 12000 + 2 cortes MP * 12000 + 2 corte_y_barba MP * 13000 = 60000 + 24000 + 26000 = 110000
-    // Elias: 2 cortes ef * 12000 + 7 cortes MP * 12000 + 2 corte_y_barba MP * 13000 = 24000 + 84000 + 26000 = 134000
-    const efectivoTotalCalc = 5 * 12000 + 2 * 12000; // 7 cortes efectivo = 84000
-    const mpTotalCalc = 2 * 12000 + 2 * 13000 + 7 * 12000 + 2 * 13000; // MP = 24000 + 26000 + 84000 + 26000 = 160000
-    const totalCalc = efectivoTotalCalc + mpTotalCalc; // 84000 + 160000 = 244000
+    // Totales esperados: suma de cantidad × precio sin diferenciar MP/efectivo
+    // Joaco: (5+2) cortes * 12000 + (0+2) corte_y_barba * 13000 = 84000 + 26000 = 110000
+    // Elias: (2+7) cortes * 12000 + (0+2) corte_y_barba * 13000 = 108000 + 26000 = 134000
+    // Total: 110000 + 134000 = 244000
+    const totalCalc = (5 + 2) * 12000 + (0 + 2) * 13000 + (2 + 7) * 12000 + (0 + 2) * 13000; // 244000
 
     await waitFor(() => {
       const fechaFormateada = new Date('2025-09-16').toLocaleDateString('es-AR', { timeZone: 'UTC' });

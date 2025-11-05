@@ -36,10 +36,24 @@ export interface RegistroCortes {
   retiroMP?: number;
 }
 
+/** Ingresos adicionales del día */
+export interface Ingresos {
+  /** Corte efectivo: suma de todos los cortes (cantidad × precio) sin diferenciar MP/efectivo */
+  corteEfectivo: number;
+  /** Insumos */
+  insumos: number;
+  /** Color */
+  color: number;
+  /** Bebidas */
+  bebidas: number;
+}
+
 /** Agrupa los registros de todos los barberos para un mismo día */
 export interface RegistroCortesDia {
   /** Fecha en formato YYYY-MM-DD */
   fecha: string;
   /** Registros por barbero */
   barberos: RegistroCortes[];
+  /** Ingresos adicionales del día (opcional) */
+  ingresos?: Ingresos;
 }
