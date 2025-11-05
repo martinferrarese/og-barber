@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import DatePicker, { registerLocale } from "react-datepicker";
+import { es } from "date-fns/locale";
+import "react-datepicker/dist/react-datepicker.css";
 import type { RegistroCortes, RegistroCortesDia } from "@/types/registroCortes";
+
+registerLocale("es", es);
 
 interface BarberoFormData {
   cortes: number;
@@ -15,12 +20,17 @@ function CargaRapidaPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fechaParam = searchParams.get("fecha");
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const [fecha, setFecha] = useState<string>(fechaParam || today);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Resetear horas para evitar problemas de zona horaria
+  const fechaInicial = fechaParam ? new Date(fechaParam) : today;
+  fechaInicial.setHours(0, 0, 0, 0);
+  const [fechaDate, setFechaDate] = useState<Date>(fechaInicial);
+  const [fecha, setFecha] = useState<string>(fechaParam || today.toISOString().slice(0, 10));
   const [barberos, setBarberos] = useState<string[]>([]);
   const [formData, setFormData] = useState<Record<string, BarberoFormData>>({});
   const [focusedFields, setFocusedFields] = useState<Set<string>>(new Set());
   const [datosCargados, setDatosCargados] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const PRECIO_CORTE = 12000;
   const PRECIO_CORTE_Y_BARBA = 13000;
@@ -38,67 +48,43 @@ function CargaRapidaPageClient() {
     return ordenados;
   }
 
-  useEffect(() => {
-    // Cargar barberos primero
-    fetch("/api/barberos")
+  function cargarDatosFecha(fechaSeleccionada: string, barberosList: string[]) {
+    setIsLoading(true);
+    fetch("/api/registros-dia")
       .then((res) => res.json())
-      .then((data: string[]) => {
-        const barberosOrdenados = ordenarBarberos(data);
-        setBarberos(barberosOrdenados);
+      .then((registros: RegistroCortesDia[]) => {
+        const registroExistente = registros.find((r) => r.fecha === fechaSeleccionada);
         
-        // Si hay fecha en la URL, cargar datos existentes
-        if (fechaParam) {
-          fetch("/api/registros-dia")
-            .then((res) => res.json())
-            .then((registros: RegistroCortesDia[]) => {
-              const registroExistente = registros.find((r) => r.fecha === fechaParam);
-              
-              if (registroExistente) {
-                // Prellenar formulario con datos existentes
-                const initialData: Record<string, BarberoFormData> = {};
-                barberosOrdenados.forEach((barbero) => {
-                  const registroBarbero = registroExistente.barberos.find((b) => b.barbero === barbero);
-                  
-                  if (registroBarbero) {
-                    const servicioCorte = registroBarbero.servicios.find((s) => s.tipo === "corte");
-                    const servicioCorteYBarba = registroBarbero.servicios.find((s) => s.tipo === "corte_con_barba");
-                    
-                    initialData[barbero] = {
-                      cortes: (servicioCorte?.efectivo || 0) + (servicioCorte?.mercado_pago || 0),
-                      corteYBarba: (servicioCorteYBarba?.efectivo || 0) + (servicioCorteYBarba?.mercado_pago || 0),
-                      retiroEfectivo: registroBarbero.retiroEfectivo || 0,
-                      retiroMP: registroBarbero.retiroMP || 0,
-                    };
-                  } else {
-                    initialData[barbero] = {
-                      cortes: 0,
-                      corteYBarba: 0,
-                      retiroEfectivo: 0,
-                      retiroMP: 0,
-                    };
-                  }
-                });
-                setFormData(initialData);
-              } else {
-                // Inicializar vacío si no hay datos
-                const initialData: Record<string, BarberoFormData> = {};
-                barberosOrdenados.forEach((barbero) => {
-                  initialData[barbero] = {
-                    cortes: 0,
-                    corteYBarba: 0,
-                    retiroEfectivo: 0,
-                    retiroMP: 0,
-                  };
-                });
-                setFormData(initialData);
-              }
-              setDatosCargados(true);
-            })
-            .catch(console.error);
-        } else {
-          // Inicializar formData vacío si no hay fecha
+        if (registroExistente) {
+          // Prellenar formulario con datos existentes
           const initialData: Record<string, BarberoFormData> = {};
-          barberosOrdenados.forEach((barbero) => {
+          barberosList.forEach((barbero) => {
+            const registroBarbero = registroExistente.barberos.find((b) => b.barbero === barbero);
+            
+            if (registroBarbero) {
+              const servicioCorte = registroBarbero.servicios.find((s) => s.tipo === "corte");
+              const servicioCorteYBarba = registroBarbero.servicios.find((s) => s.tipo === "corte_con_barba");
+              
+              initialData[barbero] = {
+                cortes: (servicioCorte?.efectivo || 0) + (servicioCorte?.mercado_pago || 0),
+                corteYBarba: (servicioCorteYBarba?.efectivo || 0) + (servicioCorteYBarba?.mercado_pago || 0),
+                retiroEfectivo: registroBarbero.retiroEfectivo || 0,
+                retiroMP: registroBarbero.retiroMP || 0,
+              };
+            } else {
+              initialData[barbero] = {
+                cortes: 0,
+                corteYBarba: 0,
+                retiroEfectivo: 0,
+                retiroMP: 0,
+              };
+            }
+          });
+          setFormData(initialData);
+        } else {
+          // Inicializar vacío si no hay datos
+          const initialData: Record<string, BarberoFormData> = {};
+          barberosList.forEach((barbero) => {
             initialData[barbero] = {
               cortes: 0,
               corteYBarba: 0,
@@ -107,11 +93,46 @@ function CargaRapidaPageClient() {
             };
           });
           setFormData(initialData);
-          setDatosCargados(true);
         }
+        setDatosCargados(true);
+        setIsLoading(false);
       })
-      .catch(console.error);
-  }, [fechaParam]);
+      .catch((error) => {
+        console.error(error);
+        setIsLoading(false);
+      });
+  }
+
+  useEffect(() => {
+    setIsLoading(true);
+    // Cargar barberos primero
+    fetch("/api/barberos")
+      .then((res) => res.json())
+      .then((data: string[]) => {
+        const barberosOrdenados = ordenarBarberos(data);
+        setBarberos(barberosOrdenados);
+        
+        // Cargar datos de la fecha inicial (de URL o fecha actual)
+        const fechaInicial = fechaParam || fecha;
+        cargarDatosFecha(fechaInicial, barberosOrdenados);
+      })
+      .catch((error) => {
+        console.error(error);
+        setIsLoading(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo al montar el componente
+
+  // Efecto para cargar datos cuando cambia la fecha
+  useEffect(() => {
+    if (barberos.length > 0 && fechaDate) {
+      const fechaStr = fechaDate.toISOString().slice(0, 10);
+      setFecha(fechaStr);
+      setDatosCargados(false);
+      cargarDatosFecha(fechaStr, barberos);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fechaDate]);
 
   useEffect(() => {
     // Enfocar el primer input cuando los barberos estén cargados y los datos estén listos
@@ -123,8 +144,7 @@ function CargaRapidaPageClient() {
   function handleChange(
     barbero: string,
     field: keyof BarberoFormData,
-    value: number,
-    isInteger: boolean = true
+    value: number
   ) {
     setFormData((prev) => ({
       ...prev,
@@ -145,12 +165,12 @@ function CargaRapidaPageClient() {
     
     // Si el campo está vacío, establecer a 0
     if (inputValue === "") {
-      handleChange(barbero, field, 0, isInteger);
+      handleChange(barbero, field, 0);
       return;
     }
     
     const newValue = isInteger ? parseInt(inputValue) || 0 : parseFloat(inputValue) || 0;
-    handleChange(barbero, field, newValue, isInteger);
+    handleChange(barbero, field, newValue);
   }
 
   function getInputValue(
@@ -194,20 +214,6 @@ function CargaRapidaPageClient() {
     const data = formData[barbero];
     if (!data) return 0;
     return data.corteYBarba * PRECIO_CORTE_Y_BARBA;
-  }
-
-  function calcularTotalCortesGeneral(barbero: string): number {
-    return calcularTotalCortes(barbero) + calcularTotalCorteYBarba(barbero);
-  }
-
-  function calcularTotalRetiros(barbero: string): number {
-    const data = formData[barbero];
-    if (!data) return 0;
-    return (data.retiroEfectivo || 0) + (data.retiroMP || 0);
-  }
-
-  function calcularTotalGeneral(barbero: string): number {
-    return calcularTotalCortesGeneral(barbero) + calcularTotalRetiros(barbero);
   }
 
   function handleGuardar(e: React.FormEvent) {
@@ -267,6 +273,15 @@ function CargaRapidaPageClient() {
       .catch(console.error);
   }
 
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-8 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mb-4"></div>
+        <p className="text-gray-400">Cargando datos...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-8 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Carga rápida</h1>
@@ -275,13 +290,22 @@ function CargaRapidaPageClient() {
         <label htmlFor="fecha" className="font-medium">
           Fecha
         </label>
-        <input
-          type="date"
+        <DatePicker
           id="fecha"
-          value={fecha}
-          onChange={(e) => setFecha(e.target.value)}
-          disabled={!!fechaParam}
-          className={`border rounded px-3 py-2 ${fechaParam ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-not-allowed' : ''}`}
+          selected={fechaDate}
+          onChange={(date: Date | null) => {
+            if (date) {
+              date.setHours(0, 0, 0, 0);
+              setFechaDate(date);
+            }
+          }}
+          dateFormat="dd/MM/yyyy"
+          locale="es"
+          className="border rounded px-3 py-2 w-full"
+          wrapperClassName="w-full"
+          showMonthDropdown
+          showYearDropdown
+          dropdownMode="select"
         />
       </div>
 
