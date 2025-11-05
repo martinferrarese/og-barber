@@ -191,7 +191,21 @@ export default async function RegistrosDiaPage() {
                       </div>
                       <ul className="text-sm ml-4 list-disc space-y-1">
                         <li>
-                          Corte efectivo: ${dia.ingresos.corteEfectivo.toLocaleString('es-AR')}
+                          Cortes: ${dia.ingresos.corteEfectivo.toLocaleString('es-AR')}
+                          {(dia.ingresos.cortesEfectivo !== undefined || dia.ingresos.cortesMP !== undefined) && (
+                            <ul className="text-xs ml-4 mt-1 list-disc space-y-0.5">
+                              {dia.ingresos.cortesEfectivo !== undefined && (
+                                <li>
+                                  Efectivo: ${dia.ingresos.cortesEfectivo.toLocaleString('es-AR')}
+                                </li>
+                              )}
+                              {dia.ingresos.cortesMP !== undefined && (
+                                <li>
+                                  MP: ${dia.ingresos.cortesMP.toLocaleString('es-AR')}
+                                </li>
+                              )}
+                            </ul>
+                          )}
                         </li>
                         <li>
                           Insumos: ${dia.ingresos.insumos.toLocaleString('es-AR')}

@@ -48,7 +48,7 @@ function HomeClient() {
         href="/ingreso-efectivo"
         className="btn btn-primary md:inline-block md:w-auto w-full text-center"
       >
-        Ingreso efectivo
+        Ingresos
       </a>
       <a
         href="/egresos"

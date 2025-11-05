@@ -40,6 +40,10 @@ export interface RegistroCortes {
 export interface Ingresos {
   /** Corte efectivo: suma de todos los cortes (cantidad × precio) sin diferenciar MP/efectivo */
   corteEfectivo: number;
+  /** Cortes pagados en efectivo (ingreso manual) */
+  cortesEfectivo?: number;
+  /** Cortes pagados por Mercado Pago (ingreso manual) */
+  cortesMP?: number;
   /** Insumos */
   insumos: number;
   /** Color */

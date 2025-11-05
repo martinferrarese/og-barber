@@ -120,7 +120,7 @@ describe("Interacciones página registros-dia", () => {
       // Buscar directamente en el texto del contenedor
       const textoCompleto = container.textContent || "";
       expect(textoCompleto).toMatch(/Ingresos/i);
-      expect(textoCompleto).toMatch(/Corte efectivo:/i);
+      expect(textoCompleto).toMatch(/Cortes:/i);
       expect(textoCompleto).toMatch(/Insumos:/i);
       expect(textoCompleto).toMatch(/Color:/i);
       expect(textoCompleto).toMatch(/Bebidas:/i);

@@ -38,6 +38,8 @@ function IngresoEfectivoPageClient() {
   });
   const [ingresos, setIngresos] = useState<Ingresos>({
     corteEfectivo: 0,
+    cortesEfectivo: 0,
+    cortesMP: 0,
     insumos: 0,
     color: 0,
     bebidas: 0,
@@ -45,6 +47,7 @@ function IngresoEfectivoPageClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [focusedFields, setFocusedFields] = useState<Set<string>>(new Set());
+  const [errorSuma, setErrorSuma] = useState<string>("");
 
   function cargarDatosFecha(fechaSeleccionada: string) {
     setIsLoading(true);
@@ -107,33 +110,72 @@ function IngresoEfectivoPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fechaDate]);
 
-  function getInputValue(field: keyof Ingresos, value: number): string {
-    const fieldKey = field;
-    if (value === 0 && focusedFields.has(fieldKey)) {
+  function getInputValue(field: string, value: number | undefined): string {
+    const val = value ?? 0;
+    if (val === 0 && focusedFields.has(field)) {
       return "";
     }
-    return value.toString();
+    return val.toString();
   }
 
-  function handleFocus(field: keyof Ingresos) {
+  function handleFocus(field: string) {
     setFocusedFields((prev) => new Set(prev).add(field));
   }
 
-  function handleBlur(field: keyof Ingresos) {
+  function handleBlur(field: string) {
     setFocusedFields((prev) => {
       const newSet = new Set(prev);
       newSet.delete(field);
       return newSet;
     });
+    // Validar suma al perder foco
+    validarSumaCortes();
+  }
+
+  function validarSumaCortes() {
+    const cortesEfectivo = ingresos.cortesEfectivo ?? 0;
+    const cortesMP = ingresos.cortesMP ?? 0;
+    const suma = cortesEfectivo + cortesMP;
+    
+    if (suma !== ingresos.corteEfectivo) {
+      setErrorSuma(`La suma de Cortes efectivo (${cortesEfectivo.toLocaleString('es-AR')}) + Cortes MP (${cortesMP.toLocaleString('es-AR')}) = ${suma.toLocaleString('es-AR')} no coincide con el total de Cortes (${ingresos.corteEfectivo.toLocaleString('es-AR')})`);
+    } else {
+      setErrorSuma("");
+    }
   }
 
   function handleInputChange(field: keyof Ingresos, e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value === "" ? 0 : parseInt(e.target.value) || 0;
-    setIngresos({ ...ingresos, [field]: value });
+    const nuevosIngresos = { ...ingresos, [field]: value };
+    setIngresos(nuevosIngresos);
+    
+    // Validar suma si cambia cortesEfectivo o cortesMP
+    if (field === "cortesEfectivo" || field === "cortesMP") {
+      const cortesEfectivo = field === "cortesEfectivo" ? value : (nuevosIngresos.cortesEfectivo ?? 0);
+      const cortesMP = field === "cortesMP" ? value : (nuevosIngresos.cortesMP ?? 0);
+      const suma = cortesEfectivo + cortesMP;
+      
+      if (suma !== nuevosIngresos.corteEfectivo) {
+        setErrorSuma(`La suma de Cortes efectivo (${cortesEfectivo.toLocaleString('es-AR')}) + Cortes MP (${cortesMP.toLocaleString('es-AR')}) = ${suma.toLocaleString('es-AR')} no coincide con el total de Cortes (${nuevosIngresos.corteEfectivo.toLocaleString('es-AR')})`);
+      } else {
+        setErrorSuma("");
+      }
+    }
   }
 
   function handleGuardar(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Validar suma antes de guardar
+    const cortesEfectivo = ingresos.cortesEfectivo ?? 0;
+    const cortesMP = ingresos.cortesMP ?? 0;
+    const suma = cortesEfectivo + cortesMP;
+    
+    if (suma !== ingresos.corteEfectivo) {
+      validarSumaCortes();
+      return;
+    }
+    
     setSaving(true);
 
     fetch("/api/ingresos", {
@@ -141,6 +183,8 @@ function IngresoEfectivoPageClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         fecha,
+        cortesEfectivo: ingresos.cortesEfectivo ?? 0,
+        cortesMP: ingresos.cortesMP ?? 0,
         insumos: ingresos.insumos,
         color: ingresos.color,
         bebidas: ingresos.bebidas,
@@ -174,7 +218,7 @@ function IngresoEfectivoPageClient() {
 
   return (
     <div className="p-4 md:p-8 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Ingreso efectivo</h1>
+      <h1 className="text-2xl font-bold mb-6">Ingresos</h1>
 
       <div className="flex flex-col gap-1 mb-6">
         <label htmlFor="fecha" className="font-medium">
@@ -202,7 +246,7 @@ function IngresoEfectivoPageClient() {
       <form onSubmit={handleGuardar} className="flex flex-col gap-6" role="form">
         <div className="flex flex-col gap-2">
           <label htmlFor="corteEfectivo" className="font-medium">
-            Corte efectivo
+            Cortes
           </label>
           <input
             type="number"
@@ -215,6 +259,46 @@ function IngresoEfectivoPageClient() {
             Calculado automáticamente según los cortes de los barberos
           </p>
         </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="cortesEfectivo" className="font-medium">
+            Cortes efectivo
+          </label>
+          <input
+            type="number"
+            id="cortesEfectivo"
+            value={getInputValue("cortesEfectivo", ingresos.cortesEfectivo)}
+            onChange={(e) => handleInputChange("cortesEfectivo", e)}
+            onFocus={() => handleFocus("cortesEfectivo")}
+            onBlur={() => handleBlur("cortesEfectivo")}
+            className="border rounded px-3 py-2 bg-transparent"
+            min="0"
+            step="100"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="cortesMP" className="font-medium">
+            Cortes MP
+          </label>
+          <input
+            type="number"
+            id="cortesMP"
+            value={getInputValue("cortesMP", ingresos.cortesMP)}
+            onChange={(e) => handleInputChange("cortesMP", e)}
+            onFocus={() => handleFocus("cortesMP")}
+            onBlur={() => handleBlur("cortesMP")}
+            className="border rounded px-3 py-2 bg-transparent"
+            min="0"
+            step="100"
+          />
+        </div>
+
+        {errorSuma && (
+          <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded">
+            <p className="text-sm">{errorSuma}</p>
+          </div>
+        )}
 
         <div className="flex flex-col gap-2">
           <label htmlFor="insumos" className="font-medium">
