@@ -1,5 +1,4 @@
 import { readRegistrosDiaKV } from '@/utils/registrosDiaFromDB';
-import { readPreciosKV } from '@/utils/preciosFromDB';
 import type { RegistroCortesDia } from '@/types/registroCortes';
 import DeleteRegistroDiaButton from '@/components/DeleteRegistroDiaButton';
 
@@ -7,16 +6,15 @@ export const dynamic = 'force-dynamic';
 
 export const metadata = { title: 'Registros diarios | OG Barber' };
 
-function calcularTotales(dia: RegistroCortesDia, precios: { corte: number; corteYBarba: number }) {
-  const PRECIOS = { corte: precios.corte, corte_con_barba: precios.corteYBarba } as const;
+function calcularTotales(dia: RegistroCortesDia) {
   let cortes = 0; // Suma de todos los cortes sin diferenciar MP/efectivo
   let especiales = 0;
   let retirosEfectivo = 0;
   let retirosMP = 0;
   dia.barberos.forEach((b) => {
     b.servicios.forEach((s) => {
-      const precio = PRECIOS[s.tipo];
-      cortes += s.cantidad * precio;
+      // Usar siempre el precio guardado en el registro
+      cortes += s.cantidad * s.precio;
     });
     // Sumar cortes especiales
     if (b.cortesEspeciales) {
@@ -37,7 +35,6 @@ export { calcularTotales };
 
 export default async function RegistrosDiaPage() {
   const registros = await readRegistrosDiaKV();
-  const precios = await readPreciosKV();
   registros.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
   return (
@@ -49,7 +46,7 @@ export default async function RegistrosDiaPage() {
       ) : (
         <ul className="space-y-4">
           {registros.map((dia, idx) => {
-            const { cortes, especiales, retirosEfectivo, retirosMP } = calcularTotales(dia, precios);
+            const { cortes, especiales, retirosEfectivo, retirosMP } = calcularTotales(dia);
             // Calcular total: cortes + especiales - retiros + ingresos adicionales - egresos
             const ingresosAdicionales = dia.ingresos 
               ? dia.ingresos.insumos + dia.ingresos.color + dia.ingresos.bebidas
@@ -111,11 +108,10 @@ export default async function RegistrosDiaPage() {
 
                   <div className="mt-3 pl-4">
                     {dia.barberos.map((b, i) => {
-                      const PRECIOS_BARBERO = { corte: precios.corte, corte_con_barba: precios.corteYBarba } as const;
                       let totalBarbero = 0;
                       b.servicios.forEach((s) => {
-                        const precio = PRECIOS_BARBERO[s.tipo];
-                        totalBarbero += s.cantidad * precio;
+                        // Usar siempre el precio guardado en el registro
+                        totalBarbero += s.cantidad * s.precio;
                       });
                       if (b.cortesEspeciales) {
                         totalBarbero += b.cortesEspeciales.reduce((acc, c) => acc + c.monto, 0);
@@ -128,8 +124,8 @@ export default async function RegistrosDiaPage() {
                           <h3 className="font-semibold">{b.barbero}</h3>
                           <ul className="text-sm ml-4 list-disc">
                             {b.servicios.map((s, j) => {
-                              const precio = PRECIOS_BARBERO[s.tipo];
-                              const totalServicio = s.cantidad * precio;
+                              // Usar siempre el precio guardado en el registro
+                              const totalServicio = s.cantidad * s.precio;
                               return (
                                 <li key={j}>
                                   {s.tipo.replace('_', ' ')}: {s.cantidad} — Total: ${totalServicio.toLocaleString('es-AR')}

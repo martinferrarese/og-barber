@@ -6,9 +6,6 @@ jest.mock("@/utils/registrosDiaFromDB", () => ({
   readRegistrosDiaKV: jest.fn(),
 }));
 
-jest.mock("@/utils/preciosFromDB", () => ({
-  readPreciosKV: jest.fn().mockResolvedValue({ corte: 12000, corteYBarba: 13000 }),
-}));
 
 import RegistrosDiaPage from "@/app/registros-dia/page";
 import DeleteRegistroDiaButton from "@/components/DeleteRegistroDiaButton";
@@ -33,7 +30,7 @@ describe("Interacciones página registros-dia", () => {
         {
           fecha: "2025-09-17",
           barbero: "Joaco",
-          servicios: [{ tipo: "corte", cantidad: 1 }],
+          servicios: [{ tipo: "corte", cantidad: 1, precio: 12000 }],
         },
       ],
     },
@@ -45,9 +42,6 @@ describe("Interacciones página registros-dia", () => {
 
   it("muestra enlace de edición con fecha correcta", async () => {
     (readRegistrosDiaKV as jest.Mock).mockResolvedValue(mockData);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { readPreciosKV } = require("@/utils/preciosFromDB");
-    (readPreciosKV as jest.Mock).mockResolvedValue({ corte: 12000, corteYBarba: 13000 });
 
     const element = await RegistrosDiaPage();
     render(element);
@@ -78,10 +72,6 @@ describe("Interacciones página registros-dia", () => {
       },
     ];
     (readRegistrosDiaKV as jest.Mock).mockResolvedValue(mockDataConIngresos);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { readPreciosKV } = require("@/utils/preciosFromDB");
-    (readPreciosKV as jest.Mock).mockResolvedValue({ corte: 12000, corteYBarba: 13000 });
-
     const element = await RegistrosDiaPage();
     render(element);
 
@@ -111,10 +101,6 @@ describe("Interacciones página registros-dia", () => {
       },
     ];
     (readRegistrosDiaKV as jest.Mock).mockResolvedValue(mockDataConIngresos);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { readPreciosKV } = require("@/utils/preciosFromDB");
-    (readPreciosKV as jest.Mock).mockResolvedValue({ corte: 12000, corteYBarba: 13000 });
-
     const element = await RegistrosDiaPage();
     const { container } = render(element);
 
@@ -155,10 +141,6 @@ describe("Interacciones página registros-dia", () => {
       },
     ];
     (readRegistrosDiaKV as jest.Mock).mockResolvedValue(mockDataConEgresos);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { readPreciosKV } = require("@/utils/preciosFromDB");
-    (readPreciosKV as jest.Mock).mockResolvedValue({ corte: 12000, corteYBarba: 13000 });
-
     const element = await RegistrosDiaPage();
     render(element);
 
@@ -192,10 +174,6 @@ describe("Interacciones página registros-dia", () => {
       },
     ];
     (readRegistrosDiaKV as jest.Mock).mockResolvedValue(mockDataConEgresos);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { readPreciosKV } = require("@/utils/preciosFromDB");
-    (readPreciosKV as jest.Mock).mockResolvedValue({ corte: 12000, corteYBarba: 13000 });
-
     const element = await RegistrosDiaPage();
     const { container } = render(element);
 

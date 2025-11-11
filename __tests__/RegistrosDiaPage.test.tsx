@@ -12,16 +12,16 @@ jest.mock('@/utils/registrosDiaFromDB', () => {
           fecha: '2025-09-16',
           barbero: 'Joaco',
           servicios: [
-            { tipo: 'corte', cantidad: 7 },
-            { tipo: 'corte_con_barba', cantidad: 2 },
+            { tipo: 'corte', cantidad: 7, precio: 12000 },
+            { tipo: 'corte_con_barba', cantidad: 2, precio: 13000 },
           ],
         },
         {
           fecha: '2025-09-16',
           barbero: 'Elias',
           servicios: [
-            { tipo: 'corte', cantidad: 9 },
-            { tipo: 'corte_con_barba', cantidad: 2 },
+            { tipo: 'corte', cantidad: 9, precio: 12000 },
+            { tipo: 'corte_con_barba', cantidad: 2, precio: 13000 },
           ],
         },
       ],
@@ -32,19 +32,16 @@ jest.mock('@/utils/registrosDiaFromDB', () => {
   };
 });
 
-jest.mock('@/utils/preciosFromDB', () => ({
-  readPreciosKV: jest.fn().mockResolvedValue({ corte: 12000, corteYBarba: 13000 }),
-}));
 
 describe('RegistrosDiaPage', () => {
-  it('muestra totales correctos sin diferenciar MP/efectivo', async () => {
+  it('muestra totales correctos usando precios guardados', async () => {
     render(await RegistrosDiaPage());
 
-    // Totales esperados: suma de cantidad × precio sin diferenciar MP/efectivo
-    // Joaco: (5+2) cortes * 12000 + (0+2) corte_y_barba * 13000 = 84000 + 26000 = 110000
-    // Elias: (2+7) cortes * 12000 + (0+2) corte_y_barba * 13000 = 108000 + 26000 = 134000
+    // Totales esperados: suma de cantidad × precio guardado
+    // Joaco: 7 cortes * 12000 + 2 corte_y_barba * 13000 = 84000 + 26000 = 110000
+    // Elias: 9 cortes * 12000 + 2 corte_y_barba * 13000 = 108000 + 26000 = 134000
     // Total: 110000 + 134000 = 244000
-    const totalCalc = (5 + 2) * 12000 + (0 + 2) * 13000 + (2 + 7) * 12000 + (0 + 2) * 13000; // 244000
+    const totalCalc = 7 * 12000 + 2 * 13000 + 9 * 12000 + 2 * 13000; // 244000
 
     await waitFor(() => {
       const fechaFormateada = new Date('2025-09-16').toLocaleDateString('es-AR', { timeZone: 'UTC' });

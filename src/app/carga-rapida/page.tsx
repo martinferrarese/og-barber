@@ -11,6 +11,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { ordenarBarberos } from "@/utils/barberos";
 import { useFormInputs } from "@/hooks/useFormInput";
 import PageSuspense from "@/components/PageSuspense";
+import { crearFechaLocal, fechaToString } from "@/utils/fechas";
 
 registerLocale("es", es);
 
@@ -27,11 +28,19 @@ function CargaRapidaPageClient() {
   const searchParams = useSearchParams();
   const fechaParam = searchParams.get("fecha");
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Resetear horas para evitar problemas de zona horaria
-  const fechaInicial = fechaParam ? new Date(fechaParam) : today;
-  fechaInicial.setHours(0, 0, 0, 0);
-  const [fechaDate, setFechaDate] = useState<Date>(fechaInicial);
-  const [fecha, setFecha] = useState<string>(fechaParam || today.toISOString().slice(0, 10));
+  today.setHours(0, 0, 0, 0);
+  const [fechaDate, setFechaDate] = useState<Date>(() => {
+    if (fechaParam) {
+      return crearFechaLocal(fechaParam);
+    }
+    return today;
+  });
+  const [fecha, setFecha] = useState<string>(() => {
+    if (fechaParam) {
+      return fechaParam;
+    }
+    return fechaToString(today);
+  });
   const [barberos, setBarberos] = useState<string[]>([]);
   const [formData, setFormData] = useState<Record<string, BarberoFormData>>({});
   const formInputs = useFormInputs();
@@ -39,6 +48,7 @@ function CargaRapidaPageClient() {
   const [datosCargados, setDatosCargados] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [precios, setPrecios] = useState(PRECIOS_DEFAULT);
+  const [registroExistente, setRegistroExistente] = useState<RegistroCortesDia | null>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
 
   function cargarDatosFecha(fechaSeleccionada: string, barberosList: string[]) {
@@ -46,13 +56,14 @@ function CargaRapidaPageClient() {
     fetch("/api/registros-dia")
       .then((res) => res.json())
       .then((registros: RegistroCortesDia[]) => {
-        const registroExistente = registros.find((r) => r.fecha === fechaSeleccionada);
+        const registroEncontrado = registros.find((r) => r.fecha === fechaSeleccionada);
+        setRegistroExistente(registroEncontrado || null);
         
-        if (registroExistente) {
+        if (registroEncontrado) {
           // Prellenar formulario con datos existentes
           const initialData: Record<string, BarberoFormData> = {};
           barberosList.forEach((barbero) => {
-            const registroBarbero = registroExistente.barberos.find((b) => b.barbero === barbero);
+            const registroBarbero = registroEncontrado.barberos.find((b) => b.barbero === barbero);
             
             if (registroBarbero) {
               const servicioCorte = registroBarbero.servicios.find((s) => s.tipo === "corte");
@@ -128,7 +139,7 @@ function CargaRapidaPageClient() {
         setBarberos(barberosOrdenados);
         
         // Cargar datos de la fecha inicial (de URL o fecha actual)
-        const fechaInicial = fechaParam || fecha;
+        const fechaInicial = fechaParam || fechaToString(today);
         cargarDatosFecha(fechaInicial, barberosOrdenados);
       })
       .catch((error) => {
@@ -138,13 +149,36 @@ function CargaRapidaPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Solo al montar el componente
 
-  // Efecto para cargar datos cuando cambia la fecha
+  // Efecto para actualizar la fecha cuando cambia el parámetro de URL
+  useEffect(() => {
+    if (fechaParam && barberos.length > 0) {
+      const fechaParamDate = crearFechaLocal(fechaParam);
+      const fechaParamStr = fechaParam;
+      // Comparar fechas en formato local para evitar problemas de zona horaria
+      const fechaActualStr = fechaToString(fechaDate);
+      
+      // Solo actualizar si la fecha es diferente
+      if (fechaActualStr !== fechaParamStr) {
+        setFechaDate(fechaParamDate);
+        setFecha(fechaParamStr);
+        setDatosCargados(false);
+        cargarDatosFecha(fechaParamStr, barberos);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fechaParam, barberos.length]);
+
+  // Efecto para cargar datos cuando cambia la fecha manualmente en el DatePicker
   useEffect(() => {
     if (barberos.length > 0 && fechaDate) {
-      const fechaStr = fechaDate.toISOString().slice(0, 10);
-      setFecha(fechaStr);
-      setDatosCargados(false);
-      cargarDatosFecha(fechaStr, barberos);
+      const fechaStr = fechaToString(fechaDate);
+      
+      // Solo actualizar si la fecha es diferente y no coincide con el parámetro de URL
+      if (fechaStr !== fecha && fechaStr !== (fechaParam || "")) {
+        setFecha(fechaStr);
+        setDatosCargados(false);
+        cargarDatosFecha(fechaStr, barberos);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fechaDate]);
@@ -279,6 +313,15 @@ function CargaRapidaPageClient() {
         const cantidadCortes = data.cortes || 0;
         const cantidadCorteYBarba = data.corteYBarba || 0;
 
+        // Buscar el registro existente del barbero para preservar precios guardados
+        const registroBarberoExistente = registroExistente?.barberos.find((b) => b.barbero === barbero);
+        const servicioCorteExistente = registroBarberoExistente?.servicios.find((s) => s.tipo === "corte");
+        const servicioCorteYBarbaExistente = registroBarberoExistente?.servicios.find((s) => s.tipo === "corte_con_barba");
+
+        // Preservar precios guardados si existen, sino usar precios actuales (para registros nuevos)
+        const precioCorte = servicioCorteExistente?.precio ?? precios.corte;
+        const precioCorteYBarba = servicioCorteYBarbaExistente?.precio ?? precios.corteYBarba;
+
         return {
           fecha,
           barbero,
@@ -286,10 +329,12 @@ function CargaRapidaPageClient() {
             {
               tipo: "corte" as const,
               cantidad: cantidadCortes,
+              precio: precioCorte,
             },
             {
               tipo: "corte_con_barba" as const,
               cantidad: cantidadCorteYBarba,
+              precio: precioCorteYBarba,
             },
           ],
           cortesEspeciales:

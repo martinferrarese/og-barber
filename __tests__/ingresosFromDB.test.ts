@@ -1,15 +1,10 @@
 import { calcularCorteEfectivo, readIngresosKV, writeIngresosKV } from "@/utils/ingresosFromDB";
 import { readRegistrosDiaKV, upsertRegistroDiaKV } from "@/utils/registrosDiaFromDB";
-import { readPreciosKV } from "@/utils/preciosFromDB";
 import type { RegistroCortesDia, Ingresos } from "@/types/registroCortes";
 
 jest.mock("@/utils/registrosDiaFromDB", () => ({
   readRegistrosDiaKV: jest.fn(),
   upsertRegistroDiaKV: jest.fn(),
-}));
-
-jest.mock("@/utils/preciosFromDB", () => ({
-  readPreciosKV: jest.fn(),
 }));
 
 describe("ingresosFromDB", () => {
@@ -27,8 +22,8 @@ describe("ingresosFromDB", () => {
               fecha: "2025-09-16",
               barbero: "Joaco",
               servicios: [
-                { tipo: "corte", cantidad: 3 },
-                { tipo: "corte_con_barba", cantidad: 3 },
+                { tipo: "corte", cantidad: 3, precio: 12000 },
+                { tipo: "corte_con_barba", cantidad: 3, precio: 13000 },
               ],
             },
           ],
@@ -36,11 +31,10 @@ describe("ingresosFromDB", () => {
       ];
 
       (readRegistrosDiaKV as jest.Mock).mockResolvedValue(mockRegistro);
-      (readPreciosKV as jest.Mock).mockResolvedValue({ corte: 12000, corteYBarba: 13000 });
 
       const total = await calcularCorteEfectivo("2025-09-16");
 
-      // (2+1)*12000 + (1+2)*13000 = 36000 + 39000 = 75000
+      // 3 * 12000 + 3 * 13000 = 36000 + 39000 = 75000
       expect(total).toBe(75000);
     });
 
@@ -101,7 +95,7 @@ describe("ingresosFromDB", () => {
           {
             fecha: "2025-09-16",
             barbero: "Joaco",
-            servicios: [{ tipo: "corte", cantidad: 1 }],
+            servicios: [{ tipo: "corte", cantidad: 1, precio: 12000 }],
           },
         ],
       };

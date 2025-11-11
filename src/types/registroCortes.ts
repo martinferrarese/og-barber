@@ -5,6 +5,8 @@ export interface RegistroCorteItem {
   tipo: Servicio;
   /** Cantidad de cortes (sin diferenciar forma de pago) */
   cantidad: number;
+  /** Precio usado al momento de crear el registro */
+  precio: number;
 }
 
 /** Corte con monto personalizado (fuera de los precios estándar) */

@@ -1,6 +1,5 @@
 import type { Ingresos } from '@/types/registroCortes';
 import { readRegistrosDiaKV, upsertRegistroDiaKV } from './registrosDiaFromDB';
-import { readPreciosKV } from './preciosFromDB';
 
 /**
  * Calcula el corte efectivo sumando todos los cortes (cantidad × precio)
@@ -14,16 +13,12 @@ export async function calcularCorteEfectivo(fecha: string): Promise<number> {
     return 0;
   }
 
-  const precios = await readPreciosKV();
   let total = 0;
 
   registroDia.barberos.forEach((barbero) => {
     barbero.servicios.forEach((servicio) => {
-      if (servicio.tipo === 'corte') {
-        total += servicio.cantidad * precios.corte;
-      } else if (servicio.tipo === 'corte_con_barba') {
-        total += servicio.cantidad * precios.corteYBarba;
-      }
+      // Usar siempre el precio guardado en el registro
+      total += servicio.cantidad * servicio.precio;
     });
     // Sumar cortes especiales
     if (barbero.cortesEspeciales) {
