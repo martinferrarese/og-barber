@@ -6,6 +6,7 @@ import DatePicker, { registerLocale } from "react-datepicker";
 import { es } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 import type { Egresos } from "@/types/registroCortes";
+import { crearFechaLocal, fechaToString } from "@/utils/fechas";
 
 registerLocale("es", es);
 
@@ -15,22 +16,6 @@ function EgresosPageClient() {
   const fechaParam = searchParams.get("fecha");
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
-  // Función para crear una fecha en zona horaria local desde un string YYYY-MM-DD
-  function crearFechaLocal(fechaStr: string): Date {
-    const [year, month, day] = fechaStr.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    date.setHours(0, 0, 0, 0);
-    return date;
-  }
-  
-  // Función para convertir Date a string YYYY-MM-DD en zona horaria local
-  function fechaToString(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
   
   const [fechaDate, setFechaDate] = useState<Date>(() => {
     if (fechaParam) {
