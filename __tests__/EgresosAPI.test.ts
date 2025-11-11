@@ -172,7 +172,7 @@ describe('/api/egresos', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe('Todos los campos deben ser números');
+      expect(data.error).toBe('Todos los campos deben ser números válidos');
     });
 
     it('asegura que los valores no sean negativos', async () => {

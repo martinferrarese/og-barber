@@ -1,21 +1,21 @@
 import { NextResponse } from 'next/server';
 import { readIngresosKV, writeIngresosKV, calcularCorteEfectivo } from '@/utils/ingresosFromDB';
 import type { Ingresos } from '@/types/registroCortes';
+import { errorResponse, parseJsonSafely, validateDateFormat, isValidNumber } from '@/utils/apiHelpers';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const fecha = searchParams.get('fecha');
-
-  if (!fecha) {
-    return NextResponse.json({ error: 'Fecha requerida' }, { status: 400 });
-  }
-
-  // Validar formato de fecha
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-    return NextResponse.json({ error: 'Formato de fecha inválido. Debe ser YYYY-MM-DD' }, { status: 400 });
-  }
-
   try {
+    const { searchParams } = new URL(request.url);
+    const fecha = searchParams.get('fecha');
+
+    if (!fecha) {
+      return errorResponse('Fecha requerida', 400);
+    }
+
+    if (!validateDateFormat(fecha)) {
+      return errorResponse('Formato de fecha inválido. Debe ser YYYY-MM-DD', 400);
+    }
+
     // Siempre calcular el corte efectivo más reciente
     const corteEfectivo = await calcularCorteEfectivo(fecha);
     const ingresos = await readIngresosKV(fecha);
@@ -42,42 +42,35 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Error al leer ingresos:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error al leer ingresos';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return errorResponse(errorMessage, 500);
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = await parseJsonSafely<{ fecha?: string; cortesEfectivo?: number; cortesMP?: number; insumos?: number; color?: number; bebidas?: number }>(request);
+    if (!body) {
+      return errorResponse('Body JSON inválido', 400);
+    }
+
     const { fecha, cortesEfectivo, cortesMP, insumos, color, bebidas } = body;
 
-    if (!fecha) {
-      return NextResponse.json({ error: 'Fecha requerida' }, { status: 400 });
+    if (!fecha || typeof fecha !== 'string') {
+      return errorResponse('Fecha requerida', 400);
     }
 
-    // Validar formato de fecha (YYYY-MM-DD)
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
-      return NextResponse.json({ error: 'Formato de fecha inválido. Debe ser YYYY-MM-DD' }, { status: 400 });
-    }
-
-    if (
-      typeof cortesEfectivo !== 'number' ||
-      typeof cortesMP !== 'number' ||
-      typeof insumos !== 'number' ||
-      typeof color !== 'number' ||
-      typeof bebidas !== 'number'
-    ) {
-      return NextResponse.json({ error: 'Todos los campos deben ser números' }, { status: 400 });
+    if (!validateDateFormat(fecha)) {
+      return errorResponse('Formato de fecha inválido. Debe ser YYYY-MM-DD', 400);
     }
 
     if (
-      isNaN(cortesEfectivo) ||
-      isNaN(cortesMP) ||
-      isNaN(insumos) ||
-      isNaN(color) ||
-      isNaN(bebidas)
+      !isValidNumber(cortesEfectivo) ||
+      !isValidNumber(cortesMP) ||
+      !isValidNumber(insumos) ||
+      !isValidNumber(color) ||
+      !isValidNumber(bebidas)
     ) {
-      return NextResponse.json({ error: 'Todos los campos deben ser números válidos' }, { status: 400 });
+      return errorResponse('Todos los campos deben ser números válidos', 400);
     }
 
     // Calcular corte efectivo automáticamente
@@ -86,9 +79,9 @@ export async function POST(request: Request) {
     // Validar que la suma coincida
     const sumaCortes = cortesEfectivo + cortesMP;
     if (sumaCortes !== corteEfectivo) {
-      return NextResponse.json({
-        error: `La suma de Cortes efectivo (${cortesEfectivo.toLocaleString('es-AR')}) + Cortes MP (${cortesMP.toLocaleString('es-AR')}) = ${sumaCortes.toLocaleString('es-AR')} no coincide con el total de Cortes (${corteEfectivo.toLocaleString('es-AR')})`
-      }, { status: 400 });
+      return errorResponse(
+        `La suma de Cortes efectivo (${cortesEfectivo.toLocaleString('es-AR')}) + Cortes MP (${cortesMP.toLocaleString('es-AR')}) = ${sumaCortes.toLocaleString('es-AR')} no coincide con el total de Cortes (${corteEfectivo.toLocaleString('es-AR')})`
+      );
     }
 
     const ingresos: Ingresos = {
@@ -106,7 +99,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error al guardar ingresos:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error al guardar ingresos';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return errorResponse(errorMessage, 500);
   }
 }
 
