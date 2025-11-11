@@ -66,8 +66,8 @@ function CargaRapidaPageClient() {
               const servicioCorteYBarba = registroBarbero.servicios.find((s) => s.tipo === "corte_con_barba");
               
               initialData[barbero] = {
-                cortes: (servicioCorte?.efectivo || 0) + (servicioCorte?.mercado_pago || 0),
-                corteYBarba: (servicioCorteYBarba?.efectivo || 0) + (servicioCorteYBarba?.mercado_pago || 0),
+                cortes: servicioCorte?.cantidad || 0,
+                corteYBarba: servicioCorteYBarba?.cantidad || 0,
                 retiroEfectivo: registroBarbero.retiroEfectivo || 0,
                 retiroMP: registroBarbero.retiroMP || 0,
                 cortesEspeciales: registroBarbero.cortesEspeciales || [],
@@ -294,10 +294,9 @@ function CargaRapidaPageClient() {
       })
       .map((barbero) => {
         const data = formData[barbero];
-        // Dividir los cortes entre efectivo y MP proporcionalmente o igualmente
-        // Por ahora, asumimos que todos son efectivo si no se especifica
-        const totalCortes = data.cortes || 0;
-        const totalCorteYBarba = data.corteYBarba || 0;
+        // Guardar cantidades de cortes (sin diferenciar efectivo/MP)
+        const cantidadCortes = data.cortes || 0;
+        const cantidadCorteYBarba = data.corteYBarba || 0;
 
         return {
           fecha,
@@ -305,13 +304,11 @@ function CargaRapidaPageClient() {
           servicios: [
             {
               tipo: "corte" as const,
-              efectivo: totalCortes,
-              mercado_pago: 0,
+              cantidad: cantidadCortes,
             },
             {
               tipo: "corte_con_barba" as const,
-              efectivo: totalCorteYBarba,
-              mercado_pago: 0,
+              cantidad: cantidadCorteYBarba,
             },
           ],
           cortesEspeciales:

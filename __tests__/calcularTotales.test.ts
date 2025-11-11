@@ -11,7 +11,7 @@ describe('calcularTotales', () => {
         {
           fecha: '2025-09-16',
           barbero: 'Joaco',
-          servicios: [{ tipo: 'corte', efectivo: 2, mercado_pago: 1 }],
+          servicios: [{ tipo: 'corte', cantidad: 3 }],
           cortesEspeciales: [{ monto: 5000 }, { monto: 3000 }],
         },
       ],
@@ -19,7 +19,7 @@ describe('calcularTotales', () => {
 
     const { cortes, especiales } = calcularTotales(dia, PRECIOS_DEFAULT);
 
-    expect(cortes).toBe(36000); // (2 + 1) * 12000 = 36000
+    expect(cortes).toBe(36000); // 3 * 12000 = 36000
     expect(especiales).toBe(8000); // 5000 + 3000
   });
 
@@ -30,7 +30,7 @@ describe('calcularTotales', () => {
         {
           fecha: '2025-09-16',
           barbero: 'Joaco',
-          servicios: [{ tipo: 'corte', efectivo: 2, mercado_pago: 1 }],
+          servicios: [{ tipo: 'corte', cantidad: 3 }],
           // Sin cortesEspeciales
         },
       ],
@@ -48,7 +48,7 @@ describe('calcularTotales', () => {
         {
           fecha: '2025-09-16',
           barbero: 'Joaco',
-          servicios: [{ tipo: 'corte', efectivo: 2, mercado_pago: 1 }],
+          servicios: [{ tipo: 'corte', cantidad: 3 }],
           cortesEspeciales: [],
         },
       ],
@@ -66,13 +66,13 @@ describe('calcularTotales', () => {
         {
           fecha: '2025-09-16',
           barbero: 'Joaco',
-          servicios: [{ tipo: 'corte', efectivo: 3, mercado_pago: 0 }],
+          servicios: [{ tipo: 'corte', cantidad: 3 }],
           cortesEspeciales: [{ monto: 5000 }],
         },
         {
           fecha: '2025-09-16',
           barbero: 'Elias',
-          servicios: [{ tipo: 'corte', efectivo: 2, mercado_pago: 1 }],
+          servicios: [{ tipo: 'corte', cantidad: 3 }],
           cortesEspeciales: [{ monto: 8000 }, { monto: 2000 }],
         },
       ],
@@ -80,7 +80,7 @@ describe('calcularTotales', () => {
 
     const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
-    // Cortes: (3+0)*12000 + (2+1)*12000 = 36000 + 36000 = 72000
+    // Cortes: 3*12000 + 3*12000 = 36000 + 36000 = 72000
     expect(result.cortes).toBe(72000);
     // Especiales: 5000 + 8000 + 2000 = 15000
     expect(result.especiales).toBe(15000);
@@ -93,13 +93,13 @@ describe('calcularTotales', () => {
         {
           fecha: '2025-09-16',
           barbero: 'Joaco',
-          servicios: [{ tipo: 'corte', efectivo: 1, mercado_pago: 0 }],
+          servicios: [{ tipo: 'corte', cantidad: 1 }],
           cortesEspeciales: [{ monto: 5000 }],
         },
         {
           fecha: '2025-09-16',
           barbero: 'Elias',
-          servicios: [{ tipo: 'corte', efectivo: 1, mercado_pago: 0 }],
+          servicios: [{ tipo: 'corte', cantidad: 1 }],
           // Sin cortesEspeciales
         },
       ],
@@ -107,7 +107,7 @@ describe('calcularTotales', () => {
 
     const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
-    expect(result.cortes).toBe(24000); // (1+0 + 1+0) * 12000 = 24000
+    expect(result.cortes).toBe(24000); // (1 + 1) * 12000 = 24000
     expect(result.especiales).toBe(5000); // solo del primero
   });
 
@@ -118,7 +118,7 @@ describe('calcularTotales', () => {
         {
           fecha: '2025-09-16',
           barbero: 'Joaco',
-          servicios: [{ tipo: 'corte', efectivo: 2, mercado_pago: 1 }],
+          servicios: [{ tipo: 'corte', cantidad: 3 }],
           retiroEfectivo: 5000,
           retiroMP: 3000,
         },
@@ -127,7 +127,7 @@ describe('calcularTotales', () => {
 
     const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
-    expect(result.cortes).toBe(36000); // (2 + 1) * 12000 = 36000
+    expect(result.cortes).toBe(36000); // 3 * 12000 = 36000
     expect(result.retirosEfectivo).toBe(5000);
     expect(result.retirosMP).toBe(3000);
   });
@@ -139,14 +139,14 @@ describe('calcularTotales', () => {
         {
           fecha: '2025-09-16',
           barbero: 'Joaco',
-          servicios: [{ tipo: 'corte', efectivo: 1, mercado_pago: 0 }],
+          servicios: [{ tipo: 'corte', cantidad: 1 }],
           retiroEfectivo: 5000,
           retiroMP: 2000,
         },
         {
           fecha: '2025-09-16',
           barbero: 'Elias',
-          servicios: [{ tipo: 'corte', efectivo: 1, mercado_pago: 0 }],
+          servicios: [{ tipo: 'corte', cantidad: 1 }],
           retiroEfectivo: 3000,
           retiroMP: 1000,
         },
@@ -166,7 +166,7 @@ describe('calcularTotales', () => {
         {
           fecha: '2025-09-16',
           barbero: 'Joaco',
-          servicios: [{ tipo: 'corte', efectivo: 2, mercado_pago: 1 }],
+          servicios: [{ tipo: 'corte', cantidad: 3 }],
         },
       ],
     };
@@ -185,8 +185,8 @@ describe('calcularTotales', () => {
           fecha: '2025-09-16',
           barbero: 'Joaco',
           servicios: [
-            { tipo: 'corte', efectivo: 2, mercado_pago: 1 },
-            { tipo: 'corte_con_barba', efectivo: 1, mercado_pago: 2 },
+            { tipo: 'corte', cantidad: 3 },
+            { tipo: 'corte_con_barba', cantidad: 3 },
           ],
         },
       ],
@@ -194,7 +194,7 @@ describe('calcularTotales', () => {
 
     const result = calcularTotales(dia, PRECIOS_DEFAULT);
 
-    // Cortes: (2+1)*12000 + (1+2)*13000 = 36000 + 39000 = 75000
+    // Cortes: 3*12000 + 3*13000 = 36000 + 39000 = 75000
     expect(result.cortes).toBe(75000);
   });
 });

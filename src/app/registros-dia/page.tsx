@@ -16,8 +16,7 @@ function calcularTotales(dia: RegistroCortesDia, precios: { corte: number; corte
   dia.barberos.forEach((b) => {
     b.servicios.forEach((s) => {
       const precio = PRECIOS[s.tipo];
-      const cantidadTotal = s.efectivo + s.mercado_pago;
-      cortes += cantidadTotal * precio;
+      cortes += s.cantidad * precio;
     });
     // Sumar cortes especiales
     if (b.cortesEspeciales) {
@@ -71,9 +70,9 @@ export default async function RegistrosDiaPage() {
             dia.barberos.forEach((b) => {
               b.servicios.forEach((s) => {
                 if (s.tipo === 'corte') {
-                  totalCortes += s.efectivo + s.mercado_pago;
+                  totalCortes += s.cantidad;
                 } else if (s.tipo === 'corte_con_barba') {
-                  totalCorteYBarba += s.efectivo + s.mercado_pago;
+                  totalCorteYBarba += s.cantidad;
                 }
               });
             });
@@ -116,7 +115,7 @@ export default async function RegistrosDiaPage() {
                       let totalBarbero = 0;
                       b.servicios.forEach((s) => {
                         const precio = PRECIOS_BARBERO[s.tipo];
-                        totalBarbero += (s.efectivo + s.mercado_pago) * precio;
+                        totalBarbero += s.cantidad * precio;
                       });
                       if (b.cortesEspeciales) {
                         totalBarbero += b.cortesEspeciales.reduce((acc, c) => acc + c.monto, 0);
@@ -130,11 +129,10 @@ export default async function RegistrosDiaPage() {
                           <ul className="text-sm ml-4 list-disc">
                             {b.servicios.map((s, j) => {
                               const precio = PRECIOS_BARBERO[s.tipo];
-                              const cantidadTotal = s.efectivo + s.mercado_pago;
-                              const totalServicio = cantidadTotal * precio;
+                              const totalServicio = s.cantidad * precio;
                               return (
                                 <li key={j}>
-                                  {s.tipo.replace('_', ' ')}: {cantidadTotal} — Total: ${totalServicio.toLocaleString('es-AR')}
+                                  {s.tipo.replace('_', ' ')}: {s.cantidad} — Total: ${totalServicio.toLocaleString('es-AR')}
                                 </li>
                               );
                             })}

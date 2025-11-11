@@ -27,8 +27,8 @@ describe("ingresosFromDB", () => {
               fecha: "2025-09-16",
               barbero: "Joaco",
               servicios: [
-                { tipo: "corte", efectivo: 2, mercado_pago: 1 },
-                { tipo: "corte_con_barba", efectivo: 1, mercado_pago: 2 },
+                { tipo: "corte", cantidad: 3 },
+                { tipo: "corte_con_barba", cantidad: 3 },
               ],
             },
           ],
@@ -101,7 +101,7 @@ describe("ingresosFromDB", () => {
           {
             fecha: "2025-09-16",
             barbero: "Joaco",
-            servicios: [{ tipo: "corte", efectivo: 1, mercado_pago: 0 }],
+            servicios: [{ tipo: "corte", cantidad: 1 }],
           },
         ],
       };

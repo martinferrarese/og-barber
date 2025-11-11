@@ -3,10 +3,8 @@ export type Servicio = 'corte' | 'corte_con_barba';
 export interface RegistroCorteItem {
   /** Tipo de servicio */
   tipo: Servicio;
-  /** Cantidad pagada en efectivo */
-  efectivo: number;
-  /** Cantidad pagada vía Mercado Pago */
-  mercado_pago: number;
+  /** Cantidad de cortes (sin diferenciar forma de pago) */
+  cantidad: number;
 }
 
 /** Corte con monto personalizado (fuera de los precios estándar) */
@@ -26,7 +24,7 @@ export interface RegistroCortes {
   fecha: string;
   /** Nombre del barbero */
   barbero: string;
-  /** Listado de servicios con cantidades discriminadas por forma de pago */
+  /** Listado de servicios con cantidades de cortes (sin diferenciar forma de pago) */
   servicios: RegistroCorteItem[];
   /** Cortes especiales con montos personalizados (opcional para retrocompatibilidad) */
   cortesEspeciales?: CorteEspecial[];

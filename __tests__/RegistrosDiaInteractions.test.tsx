@@ -29,7 +29,7 @@ describe("Interacciones página registros-dia", () => {
         {
           fecha: "2025-09-17",
           barbero: "Joaco",
-          servicios: [{ tipo: "corte", efectivo: 1, mercado_pago: 0 }],
+          servicios: [{ tipo: "corte", cantidad: 1 }],
         },
       ],
     },
@@ -62,7 +62,7 @@ describe("Interacciones página registros-dia", () => {
           {
             fecha: "2025-09-17",
             barbero: "Joaco",
-            servicios: [{ tipo: "corte", efectivo: 1, mercado_pago: 0 }],
+            servicios: [{ tipo: "corte", cantidad: 1 }],
           },
         ],
         ingresos: {
@@ -95,7 +95,7 @@ describe("Interacciones página registros-dia", () => {
           {
             fecha: "2025-09-17",
             barbero: "Joaco",
-            servicios: [{ tipo: "corte", efectivo: 1, mercado_pago: 0 }],
+            servicios: [{ tipo: "corte", cantidad: 1 }],
           },
         ],
         ingresos: {
@@ -135,7 +135,7 @@ describe("Interacciones página registros-dia", () => {
           {
             fecha: "2025-09-17",
             barbero: "Joaco",
-            servicios: [{ tipo: "corte", efectivo: 1, mercado_pago: 0 }],
+            servicios: [{ tipo: "corte", cantidad: 1 }],
           },
         ],
         egresos: {
@@ -172,7 +172,7 @@ describe("Interacciones página registros-dia", () => {
           {
             fecha: "2025-09-17",
             barbero: "Joaco",
-            servicios: [{ tipo: "corte", efectivo: 1, mercado_pago: 0 }],
+            servicios: [{ tipo: "corte", cantidad: 1 }],
           },
         ],
         egresos: {

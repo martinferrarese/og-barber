@@ -64,7 +64,7 @@ describe("egresosFromDB", () => {
           {
             fecha: "2025-09-16",
             barbero: "Joaco",
-            servicios: [{ tipo: "corte", efectivo: 1, mercado_pago: 0 }],
+            servicios: [{ tipo: "corte", cantidad: 1 }],
           },
         ],
       };

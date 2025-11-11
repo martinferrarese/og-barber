@@ -275,16 +275,14 @@ describe("CargaRapidaPage", () => {
         expect(body.barberos[0].barbero).toBe("Joaco");
         // Verificar que tiene el servicio de corte
         const servicioCorte = body.barberos[0].servicios.find((s: { tipo: string }) => s.tipo === "corte");
-        expect(servicioCorte).toEqual({ tipo: "corte", efectivo: 2, mercado_pago: 0 });
+        expect(servicioCorte).toEqual({ tipo: "corte", cantidad: 2 });
         // Verificar que tiene el servicio de corte y barba (siempre se incluye, puede ser 0)
         const servicioCorteYBarba = body.barberos[0].servicios.find((s: { tipo: string }) => s.tipo === "corte_con_barba");
         expect(servicioCorteYBarba).toBeDefined();
         expect(servicioCorteYBarba).toMatchObject({ 
           tipo: "corte_con_barba", 
-          mercado_pago: 0 
+          cantidad: 0 
         });
-        // efectivo debe ser 0 cuando no se ingresó corte y barba
-        expect(servicioCorteYBarba?.efectivo).toBe(0);
         // Verificar que tiene exactamente 2 servicios
         expect(body.barberos[0].servicios).toHaveLength(2);
       }
@@ -555,7 +553,7 @@ describe("CargaRapidaPage", () => {
         expect(body.barberos[0].retiroEfectivo).toBe(10000);
         // Verificar que los servicios tienen valores en 0
         const servicioCorte = body.barberos[0].servicios.find((s: { tipo: string }) => s.tipo === "corte");
-        expect(servicioCorte.efectivo).toBe(0);
+        expect(servicioCorte.cantidad).toBe(0);
       }
     });
   });

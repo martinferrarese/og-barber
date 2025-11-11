@@ -19,11 +19,10 @@ export async function calcularCorteEfectivo(fecha: string): Promise<number> {
 
   registroDia.barberos.forEach((barbero) => {
     barbero.servicios.forEach((servicio) => {
-      const cantidadTotal = servicio.efectivo + servicio.mercado_pago;
       if (servicio.tipo === 'corte') {
-        total += cantidadTotal * precios.corte;
+        total += servicio.cantidad * precios.corte;
       } else if (servicio.tipo === 'corte_con_barba') {
-        total += cantidadTotal * precios.corteYBarba;
+        total += servicio.cantidad * precios.corteYBarba;
       }
     });
     // Sumar cortes especiales

@@ -12,16 +12,16 @@ jest.mock('@/utils/registrosDiaFromDB', () => {
           fecha: '2025-09-16',
           barbero: 'Joaco',
           servicios: [
-            { tipo: 'corte', efectivo: 5, mercado_pago: 2 },
-            { tipo: 'corte_con_barba', efectivo: 0, mercado_pago: 2 },
+            { tipo: 'corte', cantidad: 7 },
+            { tipo: 'corte_con_barba', cantidad: 2 },
           ],
         },
         {
           fecha: '2025-09-16',
           barbero: 'Elias',
           servicios: [
-            { tipo: 'corte', efectivo: 2, mercado_pago: 7 },
-            { tipo: 'corte_con_barba', efectivo: 0, mercado_pago: 2 },
+            { tipo: 'corte', cantidad: 9 },
+            { tipo: 'corte_con_barba', cantidad: 2 },
           ],
         },
       ],
