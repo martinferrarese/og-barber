@@ -13,10 +13,15 @@ jest.mock("@/utils/barberosFromDB", () => {
 const { readBarberosKV } = jest.requireMock("@/utils/barberosFromDB");
 
 const mockFetch = jest.fn(() =>
-  Promise.resolve({ json: () => Promise.resolve({ ok: true }) }),
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({ ok: true }),
+  }),
 );
 
 global.fetch = mockFetch as unknown as typeof fetch;
+global.alert = jest.fn();
+global.confirm = jest.fn(() => true); // Por defecto confirma las acciones
 
 let rerenderPage: (() => Promise<void>) | null = null;
 
@@ -29,6 +34,12 @@ jest.mock("next/navigation", () => ({
 }));
 
 describe("BarberosPage", () => {
+  beforeEach(() => {
+    mockFetch.mockClear();
+    (global.alert as jest.Mock).mockClear();
+    (global.confirm as jest.Mock).mockReturnValue(true);
+  });
+
   it("muestra al nuevo barbero después de agregarlo", async () => {
     readBarberosKV.mockResolvedValueOnce(["Juan"]);
 

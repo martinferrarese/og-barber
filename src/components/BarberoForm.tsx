@@ -9,13 +9,32 @@ export default function BarberoForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombre.trim()) return;
-    await fetch("/api/barberos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre }),
-    });
-    setNombre("");
-    router.refresh();
+    
+    try {
+      const res = await fetch("/api/barberos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre }),
+      });
+      
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || "Error al agregar barbero");
+      }
+      
+      setNombre("");
+      router.refresh();
+    } catch (error) {
+      console.error("Error al agregar barbero:", error);
+      
+      // Manejar errores de red
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        alert("Error de conexión. Por favor, verifica tu conexión a internet e intenta nuevamente.");
+        return;
+      }
+      
+      alert(error instanceof Error ? error.message : "Error al agregar barbero. Por favor, intenta nuevamente.");
+    }
   };
 
   return (

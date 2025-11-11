@@ -3,10 +3,14 @@ import userEvent from "@testing-library/user-event";
 import BarberoForm from "@/components/BarberoForm";
 
 const mockFetch = jest.fn(() =>
-  Promise.resolve({ json: () => Promise.resolve({ ok: true }) }),
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({ ok: true }),
+  }),
 );
 
 global.fetch = mockFetch as unknown as typeof fetch;
+global.alert = jest.fn();
 
 const mockRefresh = jest.fn();
 jest.mock("next/navigation", () => ({
@@ -17,6 +21,7 @@ describe("BarberoForm", () => {
   beforeEach(() => {
     mockFetch.mockClear();
     mockRefresh.mockClear();
+    (global.alert as jest.Mock).mockClear();
   });
 
   it("envía el nombre del barbero y refresca la página", async () => {

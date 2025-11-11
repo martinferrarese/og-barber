@@ -8,15 +8,41 @@ export default function DeleteBarberoButton({ nombre }: { nombre: string }) {
 
   const handleDelete = async () => {
     if (loading) return;
+    
+    // Confirmación antes de eliminar
+    if (!confirm(`¿Estás seguro de que quieres eliminar a ${nombre}?`)) {
+      return;
+    }
+    
     setLoading(true);
-    await fetch("/api/barberos", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre }),
-    });
-    router.refresh();
-    // Pequeña pausa para evitar parpadeo; opcional
-    setTimeout(() => setLoading(false), 300);
+    
+    try {
+      const res = await fetch("/api/barberos", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre }),
+      });
+      
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || "Error al eliminar barbero");
+      }
+      
+      router.refresh();
+      // Pequeña pausa para evitar parpadeo; opcional
+      setTimeout(() => setLoading(false), 300);
+    } catch (error) {
+      console.error("Error al eliminar barbero:", error);
+      setLoading(false); // Restaurar estado si falla
+      
+      // Manejar errores de red
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        alert("Error de conexión. Por favor, verifica tu conexión a internet e intenta nuevamente.");
+        return;
+      }
+      
+      alert(error instanceof Error ? error.message : "Error al eliminar barbero. Por favor, intenta nuevamente.");
+    }
   };
 
   return (

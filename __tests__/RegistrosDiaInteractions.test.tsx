@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 jest.mock("@/utils/registrosDiaFromDB", () => ({
   readRegistrosDiaKV: jest.fn(),
@@ -20,6 +21,9 @@ jest.mock("next/navigation", () => ({
     push: jest.fn(),
   }),
 }));
+
+global.alert = jest.fn();
+global.confirm = jest.fn(() => true); // Por defecto confirma las acciones
 
 describe("Interacciones página registros-dia", () => {
   const mockData: RegistroCortesDia[] = [
@@ -205,20 +209,27 @@ describe("Interacciones página registros-dia", () => {
   });
 
   it("llama al endpoint DELETE al hacer clic en Eliminar", async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      json: () => Promise.resolve(mockData),
-    }) as unknown as typeof fetch;
+    const mockFetchDelete = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ ok: true }),
+    });
+    global.fetch = mockFetchDelete as unknown as typeof fetch;
+    (global.confirm as jest.Mock).mockReturnValue(true); // Asegurar que confirma
 
     render(<DeleteRegistroDiaButton fecha="2025-09-17" />);
 
     const btn = screen.getByRole("button", { name: /Eliminar día/i });
-    fireEvent.click(btn);
+    
+    // Usar userEvent.click en lugar de fireEvent.click para mejor simulación
+    const user = userEvent.setup();
+    await user.click(btn);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith("/api/registros-dia", expect.objectContaining({
+      expect(global.confirm).toHaveBeenCalled();
+      expect(mockFetchDelete).toHaveBeenCalledWith("/api/registros-dia", expect.objectContaining({
         method: "DELETE",
         body: JSON.stringify({ fecha: "2025-09-17" }),
       }));
-    });
+    }, { timeout: 3000 });
   });
 });
