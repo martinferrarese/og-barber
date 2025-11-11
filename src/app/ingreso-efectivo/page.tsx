@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import type { Ingresos } from "@/types/registroCortes";
 import { crearFechaLocal, fechaToString } from "@/utils/fechas";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { useFormInputs } from "@/hooks/useFormInput";
 
 registerLocale("es", es);
 
@@ -40,7 +41,7 @@ function IngresoEfectivoPageClient() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [focusedFields, setFocusedFields] = useState<Set<string>>(new Set());
+  const { getInputValue, handleFocus: handleFocusBase, handleBlur: handleBlurBase } = useFormInputs();
   const [errorSuma, setErrorSuma] = useState<string>("");
 
   function cargarDatosFecha(fechaSeleccionada: string) {
@@ -96,24 +97,12 @@ function IngresoEfectivoPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fechaDate]);
 
-  function getInputValue(field: string, value: number | undefined): string {
-    const val = value ?? 0;
-    if (val === 0 && focusedFields.has(field)) {
-      return "";
-    }
-    return val.toString();
-  }
-
   function handleFocus(field: string) {
-    setFocusedFields((prev) => new Set(prev).add(field));
+    handleFocusBase(field);
   }
 
   function handleBlur(field: string) {
-    setFocusedFields((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(field);
-      return newSet;
-    });
+    handleBlurBase(field);
     // Validar suma al perder foco
     validarSumaCortes();
   }

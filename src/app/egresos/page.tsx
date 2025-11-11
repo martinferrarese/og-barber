@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import type { Egresos } from "@/types/registroCortes";
 import { crearFechaLocal, fechaToString } from "@/utils/fechas";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { useFormInputs } from "@/hooks/useFormInput";
 
 registerLocale("es", es);
 
@@ -42,7 +43,7 @@ function EgresosPageClient() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [focusedFields, setFocusedFields] = useState<Set<string>>(new Set());
+  const { getInputValue, handleFocus, handleBlur } = useFormInputs();
 
   function cargarDatosFecha(fechaSeleccionada: string) {
     setIsLoading(true);
@@ -95,25 +96,6 @@ function EgresosPageClient() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fechaDate]);
-
-  function getInputValue(field: string, value: number): string {
-    if (value === 0 && focusedFields.has(field)) {
-      return "";
-    }
-    return value.toString();
-  }
-
-  function handleFocus(field: string) {
-    setFocusedFields((prev) => new Set(prev).add(field));
-  }
-
-  function handleBlur(field: string) {
-    setFocusedFields((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(field);
-      return newSet;
-    });
-  }
 
   function handleInputChange(
     tipo: "efectivo" | "mp",

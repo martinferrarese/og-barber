@@ -9,6 +9,7 @@ import type { RegistroCortes, RegistroCortesDia, CorteEspecial } from "@/types/r
 import { PRECIOS_DEFAULT } from "@/utils/preciosFromDB";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { ordenarBarberos } from "@/utils/barberos";
+import { useFormInputs } from "@/hooks/useFormInput";
 
 registerLocale("es", es);
 
@@ -32,7 +33,7 @@ function CargaRapidaPageClient() {
   const [fecha, setFecha] = useState<string>(fechaParam || today.toISOString().slice(0, 10));
   const [barberos, setBarberos] = useState<string[]>([]);
   const [formData, setFormData] = useState<Record<string, BarberoFormData>>({});
-  const [focusedFields, setFocusedFields] = useState<Set<string>>(new Set());
+  const formInputs = useFormInputs();
   const [nuevoCorteEspecial, setNuevoCorteEspecial] = useState<Record<string, number>>({});
   const [datosCargados, setDatosCargados] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -186,35 +187,23 @@ function CargaRapidaPageClient() {
     handleChange(barbero, field, newValue);
   }
 
-  function getInputValue(
+  function getInputValueForBarbero(
     barbero: string,
     field: keyof BarberoFormData,
     value: number
-  ): string | number {
+  ): string {
     const fieldKey = `${barbero}-${field}`;
-    const isFocused = focusedFields.has(fieldKey);
-    
-    // Si está enfocado y el valor es 0, mostrar vacío
-    if (isFocused && value === 0) {
-      return "";
-    }
-    
-    // Si no está enfocado y el valor es 0, mostrar 0
-    return value;
+    return formInputs.getInputValue(fieldKey, value);
   }
 
-  function handleFocus(barbero: string, field: keyof BarberoFormData) {
+  function handleFocusForBarbero(barbero: string, field: keyof BarberoFormData) {
     const fieldKey = `${barbero}-${field}`;
-    setFocusedFields((prev) => new Set(prev).add(fieldKey));
+    formInputs.handleFocus(fieldKey);
   }
 
-  function handleBlur(barbero: string, field: keyof BarberoFormData) {
+  function handleBlurForBarbero(barbero: string, field: keyof BarberoFormData) {
     const fieldKey = `${barbero}-${field}`;
-    setFocusedFields((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(fieldKey);
-      return newSet;
-    });
+    formInputs.handleBlur(fieldKey);
   }
 
   function calcularTotalCortes(barbero: string): number {
@@ -388,10 +377,10 @@ function CargaRapidaPageClient() {
                   ref={isFirstInput ? firstInputRef : null}
                   type="number"
                   min="0"
-                  value={getInputValue(barbero, "cortes", data.cortes)}
+                  value={getInputValueForBarbero(barbero, "cortes", data.cortes)}
                   onChange={(e) => handleInputChange(barbero, "cortes", e, true)}
-                  onFocus={() => handleFocus(barbero, "cortes")}
-                  onBlur={() => handleBlur(barbero, "cortes")}
+                  onFocus={() => handleFocusForBarbero(barbero, "cortes")}
+                  onBlur={() => handleBlurForBarbero(barbero, "cortes")}
                   className="border rounded px-3 py-2"
                 />
               </div>
@@ -401,10 +390,10 @@ function CargaRapidaPageClient() {
                 <input
                   type="number"
                   min="0"
-                  value={getInputValue(barbero, "corteYBarba", data.corteYBarba)}
+                  value={getInputValueForBarbero(barbero, "corteYBarba", data.corteYBarba)}
                   onChange={(e) => handleInputChange(barbero, "corteYBarba", e, true)}
-                  onFocus={() => handleFocus(barbero, "corteYBarba")}
-                  onBlur={() => handleBlur(barbero, "corteYBarba")}
+                  onFocus={() => handleFocusForBarbero(barbero, "corteYBarba")}
+                  onBlur={() => handleBlurForBarbero(barbero, "corteYBarba")}
                   className="border rounded px-3 py-2"
                 />
               </div>
@@ -415,10 +404,10 @@ function CargaRapidaPageClient() {
                   type="number"
                   min="0"
                   step="0.01"
-                  value={getInputValue(barbero, "retiroEfectivo", data.retiroEfectivo)}
+                  value={getInputValueForBarbero(barbero, "retiroEfectivo", data.retiroEfectivo)}
                   onChange={(e) => handleInputChange(barbero, "retiroEfectivo", e, false)}
-                  onFocus={() => handleFocus(barbero, "retiroEfectivo")}
-                  onBlur={() => handleBlur(barbero, "retiroEfectivo")}
+                  onFocus={() => handleFocusForBarbero(barbero, "retiroEfectivo")}
+                  onBlur={() => handleBlurForBarbero(barbero, "retiroEfectivo")}
                   className="border rounded px-3 py-2"
                 />
               </div>
@@ -429,10 +418,10 @@ function CargaRapidaPageClient() {
                   type="number"
                   min="0"
                   step="0.01"
-                  value={getInputValue(barbero, "retiroMP", data.retiroMP)}
+                  value={getInputValueForBarbero(barbero, "retiroMP", data.retiroMP)}
                   onChange={(e) => handleInputChange(barbero, "retiroMP", e, false)}
-                  onFocus={() => handleFocus(barbero, "retiroMP")}
-                  onBlur={() => handleBlur(barbero, "retiroMP")}
+                  onFocus={() => handleFocusForBarbero(barbero, "retiroMP")}
+                  onBlur={() => handleBlurForBarbero(barbero, "retiroMP")}
                   className="border rounded px-3 py-2"
                 />
               </div>
