@@ -5,6 +5,7 @@ import {
   upsertRegistroDiaKV,
 } from '@/utils/registrosDiaFromDB';
 import { errorResponse, parseJsonSafely, validateDateFormat } from '@/utils/apiHelpers';
+import type { RegistroCortesDia } from '@/types/registroCortes';
 
 export async function GET() {
   try {
@@ -19,7 +20,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const data = await parseJsonSafely(request);
+    const data = await parseJsonSafely<RegistroCortesDia>(request);
     if (!data) {
       return errorResponse('Body JSON inválido', 400);
     }
