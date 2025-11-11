@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import type { RegistroCortes, RegistroCortesDia, CorteEspecial } from "@/types/registroCortes";
 import { PRECIOS_DEFAULT } from "@/utils/preciosFromDB";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { ordenarBarberos } from "@/utils/barberos";
 
 registerLocale("es", es);
 
@@ -37,18 +38,6 @@ function CargaRapidaPageClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [precios, setPrecios] = useState(PRECIOS_DEFAULT);
   const firstInputRef = useRef<HTMLInputElement>(null);
-
-  function ordenarBarberos(barberos: string[]): string[] {
-    const otros = barberos.filter((b) => b !== "Bruno" && b !== "Lucas");
-    const bruno = barberos.find((b) => b === "Bruno");
-    const lucas = barberos.find((b) => b === "Lucas");
-    
-    const ordenados = [...otros];
-    if (bruno) ordenados.push(bruno);
-    if (lucas) ordenados.push(lucas);
-    
-    return ordenados;
-  }
 
   function cargarDatosFecha(fechaSeleccionada: string, barberosList: string[]) {
     setIsLoading(true);
