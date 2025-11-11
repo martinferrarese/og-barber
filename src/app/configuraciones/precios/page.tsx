@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PRECIOS_DEFAULT, type Precios } from "@/utils/preciosFromDB";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function PreciosPage() {
   const router = useRouter();
@@ -56,12 +57,7 @@ export default function PreciosPage() {
   };
 
   if (loading) {
-    return (
-      <div className="p-4 md:p-8 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mb-4"></div>
-        <p className="text-gray-400">Cargando...</p>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

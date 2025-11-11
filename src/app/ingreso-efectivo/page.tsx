@@ -7,6 +7,7 @@ import { es } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 import type { Ingresos } from "@/types/registroCortes";
 import { crearFechaLocal, fechaToString } from "@/utils/fechas";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 registerLocale("es", es);
 
@@ -193,12 +194,7 @@ function IngresoEfectivoPageClient() {
   }
 
   if (isLoading) {
-    return (
-      <div className="p-4 md:p-8 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mb-4"></div>
-        <p className="text-gray-400">Cargando datos...</p>
-      </div>
-    );
+    return <LoadingSpinner message="Cargando datos..." />;
   }
 
   return (
@@ -359,12 +355,7 @@ function IngresoEfectivoPageClient() {
 
 export default function IngresoEfectivoPage() {
   return (
-    <Suspense fallback={
-      <div className="p-4 md:p-8 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mb-4"></div>
-        <p className="text-gray-400">Cargando...</p>
-      </div>
-    }>
+    <Suspense fallback={<LoadingSpinner />}>
       <IngresoEfectivoPageClient />
     </Suspense>
   );
