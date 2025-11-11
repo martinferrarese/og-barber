@@ -6,6 +6,7 @@ import DatePicker, { registerLocale } from "react-datepicker";
 import { es } from "date-fns/locale";
 import "react-datepicker/dist/react-datepicker.css";
 import type { RegistroCortes, RegistroCortesDia, CorteEspecial } from "@/types/registroCortes";
+import { PRECIOS_DEFAULT } from "@/utils/preciosFromDB";
 
 registerLocale("es", es);
 
@@ -33,7 +34,7 @@ function CargaRapidaPageClient() {
   const [nuevoCorteEspecial, setNuevoCorteEspecial] = useState<Record<string, number>>({});
   const [datosCargados, setDatosCargados] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [precios, setPrecios] = useState({ corte: 12000, corteYBarba: 13000 });
+  const [precios, setPrecios] = useState(PRECIOS_DEFAULT);
   const firstInputRef = useRef<HTMLInputElement>(null);
 
   function ordenarBarberos(barberos: string[]): string[] {

@@ -7,7 +7,7 @@ export interface Precios {
   corteYBarba: number;
 }
 
-const PRECIOS_DEFAULT: Precios = {
+export const PRECIOS_DEFAULT: Precios = {
   corte: 12000,
   corteYBarba: 13000,
 };
@@ -25,4 +25,3 @@ export async function readPreciosKV(): Promise<Precios> {
 export async function writePreciosKV(precios: Precios): Promise<void> {
   await kv.set(KEY, precios);
 }
-

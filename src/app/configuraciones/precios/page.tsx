@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-interface Precios {
-  corte: number;
-  corteYBarba: number;
-}
+import { PRECIOS_DEFAULT, type Precios } from "@/utils/preciosFromDB";
 
 export default function PreciosPage() {
   const router = useRouter();
-  const [precios, setPrecios] = useState<Precios>({ corte: 12000, corteYBarba: 13000 });
+  const [precios, setPrecios] = useState<Precios>(PRECIOS_DEFAULT);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
