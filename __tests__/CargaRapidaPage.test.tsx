@@ -355,7 +355,7 @@ describe("CargaRapidaPage", () => {
     fireEvent.click(guardarButton);
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("Debe ingresar al menos un corte o corte especial para algún barbero");
+      expect(alertSpy).toHaveBeenCalledWith("Debe ingresar al menos un corte, corte especial o retiro para algún barbero");
     });
 
     alertSpy.mockRestore();
@@ -433,6 +433,131 @@ describe("CargaRapidaPage", () => {
     fireEvent.change(fechaInput, { target: { value: "2025-01-15" } });
 
     expect(fechaInput.value).toBe("2025-01-15");
+  });
+
+  it("guarda retiros correctamente al hacer submit", async () => {
+    const mockFetch = jest.fn().mockImplementation((url: RequestInfo, options?: RequestInit) => {
+      if (url === "/api/precios") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ corte: 12000, corteYBarba: 13000 }),
+        });
+      }
+      if (url === "/api/registros-dia" && options?.method === "GET") {
+        return Promise.resolve({
+          json: () => Promise.resolve([]),
+        });
+      }
+      if (url === "/api/barberos") {
+        return Promise.resolve({
+          json: () => Promise.resolve(["Joaco"]),
+        });
+      }
+      if (url === "/api/registros-dia" && options?.method === "POST") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ ok: true }),
+        });
+      }
+      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
+    });
+    global.fetch = mockFetch as unknown as typeof fetch;
+
+    render(<CargaRapidaPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Joaco")).toBeInTheDocument();
+    });
+
+    // Ingresar retiros
+    const joacoSection = screen.getByText("Joaco").closest("div");
+    const inputs = joacoSection?.querySelectorAll('input[type="number"]') || [];
+    const retiroEfectivoInput = inputs[2] as HTMLInputElement;
+    const retiroMPInput = inputs[3] as HTMLInputElement;
+    
+    fireEvent.change(retiroEfectivoInput, { target: { value: "5000" } });
+    fireEvent.change(retiroMPInput, { target: { value: "3000" } });
+
+    // Guardar
+    const guardarButton = screen.getByRole("button", { name: /Guardar/i });
+    fireEvent.click(guardarButton);
+
+    await waitFor(() => {
+      const postCall = mockFetch.mock.calls.find(
+        (call) => call[0] === "/api/registros-dia" && call[1]?.method === "POST"
+      );
+      expect(postCall).toBeDefined();
+
+      if (postCall) {
+        const [, options] = postCall as [RequestInfo, RequestInit];
+        const body = JSON.parse(options.body as string);
+        expect(body.fecha).toBeDefined();
+        expect(body.barberos).toHaveLength(1);
+        expect(body.barberos[0].barbero).toBe("Joaco");
+        expect(body.barberos[0].retiroEfectivo).toBe(5000);
+        expect(body.barberos[0].retiroMP).toBe(3000);
+      }
+    });
+  });
+
+  it("guarda solo retiros sin cortes", async () => {
+    const mockFetch = jest.fn().mockImplementation((url: RequestInfo, options?: RequestInit) => {
+      if (url === "/api/precios") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ corte: 12000, corteYBarba: 13000 }),
+        });
+      }
+      if (url === "/api/registros-dia" && options?.method === "GET") {
+        return Promise.resolve({
+          json: () => Promise.resolve([]),
+        });
+      }
+      if (url === "/api/barberos") {
+        return Promise.resolve({
+          json: () => Promise.resolve(["Joaco"]),
+        });
+      }
+      if (url === "/api/registros-dia" && options?.method === "POST") {
+        return Promise.resolve({
+          json: () => Promise.resolve({ ok: true }),
+        });
+      }
+      return Promise.resolve({ json: () => Promise.resolve({ ok: true }) });
+    });
+    global.fetch = mockFetch as unknown as typeof fetch;
+
+    render(<CargaRapidaPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Joaco")).toBeInTheDocument();
+    });
+
+    // Solo ingresar retiros, sin cortes
+    const joacoSection = screen.getByText("Joaco").closest("div");
+    const inputs = joacoSection?.querySelectorAll('input[type="number"]') || [];
+    const retiroEfectivoInput = inputs[2] as HTMLInputElement;
+    
+    fireEvent.change(retiroEfectivoInput, { target: { value: "10000" } });
+
+    // Guardar
+    const guardarButton = screen.getByRole("button", { name: /Guardar/i });
+    fireEvent.click(guardarButton);
+
+    await waitFor(() => {
+      const postCall = mockFetch.mock.calls.find(
+        (call) => call[0] === "/api/registros-dia" && call[1]?.method === "POST"
+      );
+      expect(postCall).toBeDefined();
+
+      if (postCall) {
+        const [, options] = postCall as [RequestInfo, RequestInit];
+        const body = JSON.parse(options.body as string);
+        expect(body.barberos).toHaveLength(1);
+        expect(body.barberos[0].barbero).toBe("Joaco");
+        expect(body.barberos[0].retiroEfectivo).toBe(10000);
+        // Verificar que los servicios tienen valores en 0
+        const servicioCorte = body.barberos[0].servicios.find((s: { tipo: string }) => s.tipo === "corte");
+        expect(servicioCorte.efectivo).toBe(0);
+      }
+    });
   });
 });
 

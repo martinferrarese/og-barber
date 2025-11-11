@@ -287,7 +287,9 @@ function CargaRapidaPageClient() {
           data &&
           (data.cortes > 0 ||
             data.corteYBarba > 0 ||
-            (data.cortesEspeciales && data.cortesEspeciales.length > 0))
+            (data.cortesEspeciales && data.cortesEspeciales.length > 0) ||
+            (data.retiroEfectivo && data.retiroEfectivo > 0) ||
+            (data.retiroMP && data.retiroMP > 0))
         );
       })
       .map((barbero) => {
@@ -322,7 +324,7 @@ function CargaRapidaPageClient() {
       });
 
     if (registros.length === 0) {
-      alert("Debe ingresar al menos un corte o corte especial para algún barbero");
+      alert("Debe ingresar al menos un corte, corte especial o retiro para algún barbero");
       return;
     }
 
