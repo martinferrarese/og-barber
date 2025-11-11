@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { es } from "date-fns/locale";
@@ -9,6 +9,7 @@ import type { Ingresos } from "@/types/registroCortes";
 import { crearFechaLocal, fechaToString } from "@/utils/fechas";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { useFormInputs } from "@/hooks/useFormInput";
+import PageSuspense from "@/components/PageSuspense";
 
 registerLocale("es", es);
 
@@ -344,9 +345,9 @@ function IngresoEfectivoPageClient() {
 
 export default function IngresoEfectivoPage() {
   return (
-    <Suspense fallback={<LoadingSpinner />}>
+    <PageSuspense>
       <IngresoEfectivoPageClient />
-    </Suspense>
+    </PageSuspense>
   );
 }
 

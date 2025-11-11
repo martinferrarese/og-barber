@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DatePicker, { registerLocale } from "react-datepicker";
 import { es } from "date-fns/locale";
@@ -10,6 +10,7 @@ import { PRECIOS_DEFAULT } from "@/utils/preciosFromDB";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { ordenarBarberos } from "@/utils/barberos";
 import { useFormInputs } from "@/hooks/useFormInput";
+import PageSuspense from "@/components/PageSuspense";
 
 registerLocale("es", es);
 
@@ -500,8 +501,8 @@ function CargaRapidaPageClient() {
 
 export default function CargaRapidaPage() {
   return (
-    <Suspense fallback={<div className="p-4 md:p-8 max-w-2xl mx-auto">Cargando...</div>}>
+    <PageSuspense>
       <CargaRapidaPageClient />
-    </Suspense>
+    </PageSuspense>
   );
 }
