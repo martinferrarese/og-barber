@@ -38,8 +38,6 @@ Los tests se encuentran en la carpeta `__tests__/` e incluyen:
 
 ### Cobertura actual
 
-- ✅ **30 tests** pasando
-- ✅ **12 test suites**
 - Tests cubren: Componentes de formularios, páginas, cálculos de totales, interacciones de usuario
 
 ## CI/CD
